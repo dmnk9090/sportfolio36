@@ -78,7 +78,10 @@
                     
                     <!-- Mode Juri & informasi -->
                     <div class="mt-3 pt-3 border-t border-slate-200/80 space-y-2 text-[11px] text-slate-500">
-                        <button onclick="startJuri()" class="w-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold py-2 rounded-xl border border-amber-300 text-xs">🧪 Mode Juri / Coba Aplikasi (data contoh)</button>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="toggleAdminMode()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded-xl text-xs">🔑 Masuk Mode Guru</button>
+                            <button onclick="startJuri()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold py-2 rounded-xl border border-amber-300 text-xs">🧪 Mode Juri (data contoh)</button>
+                        </div>
                         <div class="flex items-center justify-center gap-3"><button onclick="openGuide()" class="underline hover:text-blue-600 font-semibold">Panduan Penggunaan</button><span>•</span><button onclick="openAbout()" class="underline hover:text-blue-600 font-semibold">Tentang, Atribusi &amp; Privasi</button></div>
                     </div>
                 </div>
@@ -1953,6 +1956,7 @@ window.authenticateAdmin=async function(e){
   isAdminMode=true;
   window.isAdminMode = true;
   closeAdminAuthModal();
+  $('screen-welcome').classList.add('hidden');
   try{if($('auth-remember').checked)localStorage.setItem('sf_admin_email',em);else localStorage.removeItem('sf_admin_email')}catch(e){}
   $('current-mode-badge').innerHTML='Mode: <strong class="text-yellow-300">Guru / Admin</strong>';
   $('admin-btn-text').innerText='Kembali ke Mode Siswa';
@@ -2583,6 +2587,7 @@ window.authenticateAdmin = async function (e) {
     if (em === TEACHER_EMAIL) { try { await signInWithEmailAndPassword(auth, em, pw); fbOk = true; } catch (err) { code = err.code || ''; } }
     if (!fbOk && await sha(em + ':' + pw) !== AUTH_HASH) { alert('Email atau Password Guru salah! Akses ditolak.'); return; }
     isAdminMode = true; closeAdminAuthModal();
+    $('screen-welcome').classList.add('hidden');
     if (window.endJuri) endJuri();
     try { if ($('auth-remember').checked) localStorage.setItem('sf_admin_email', em); else localStorage.removeItem('sf_admin_email'); } catch (x) {}
     $('current-mode-badge').innerHTML = 'Mode: <strong class="text-yellow-300">Guru / Admin</strong>';
@@ -3040,6 +3045,7 @@ window.SF = { ok: true };
             $('view-student').classList.add('hidden'); $('view-admin').classList.remove('hidden');
             renderAdminStudentList(); return;
         }
+        if (isAdminMode && !window.JURI) { _tj(); showWelcomeScreen(); return; }
         _tj();
     };
 })();
