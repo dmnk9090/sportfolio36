@@ -34,6 +34,11 @@
             body { background-color: #ffffff; }
         }
     </style>
+<link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#1d4ed8">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
 </head>
 <body class="min-h-screen text-slate-800 flex flex-col">
 
@@ -1946,23 +1951,8 @@ const cur=()=>studentsData.find(s=>s.id===currentStudentId);
 window.alert=m=>{const t=document.createElement('div');t.className='toast';t.textContent=m;$('toast-wrap').appendChild(t);setTimeout(()=>t.remove(),4500)};
 window.confetti=confetti;function confetti(){for(let i=0;i<45;i++){const c=document.createElement('span');c.className='confetti';c.textContent=['🎉','⭐','🏅','✨'][i%4];c.style.left=Math.random()*100+'vw';c.style.animationDelay=Math.random()*.8+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),3600)}}
 
-/* ---------- 2. Login guru ber-hash ---------- */
-const AUTH_HASH="571f842bd9174fe8186e000585f372e3a1823dbef60138cff4312490ebf7d8d6";
-async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-window.authenticateAdmin=async function(e){
-  e.preventDefault();
-  const em=$('auth-email').value.trim().toLowerCase(),pw=$('auth-password').value.trim();
-  if(await sha(em+':'+pw)!==AUTH_HASH){alert('Email atau Password Guru salah! Akses ditolak.');return}
-  isAdminMode=true;
-  window.isAdminMode = true;
-  closeAdminAuthModal();
-  $('screen-welcome').classList.add('hidden');
-  try{if($('auth-remember').checked)localStorage.setItem('sf_admin_email',em);else localStorage.removeItem('sf_admin_email')}catch(e){}
-  $('current-mode-badge').innerHTML='Mode: <strong class="text-yellow-300">Guru / Admin</strong>';
-  $('admin-btn-text').innerText='Kembali ke Mode Siswa';
-  $('view-student').classList.add('hidden');$('view-admin').classList.remove('hidden');
-  renderAdminStudentList();
-};
+/* ---------- 2. Login guru: ditangani modul Firebase (Authentication) ---------- */
+window.authenticateAdmin=function(e){e.preventDefault();alert('Tidak dapat terhubung ke Firebase. Periksa koneksi internet lalu muat ulang halaman.')};
 
 /* ---------- 3. Login siswa: NISN + PIN ---------- */
 const pinOf=s=>s.pin||String(s.nis).slice(-4);
@@ -2484,8 +2474,6 @@ const auth = getAuth(app);
 try { await setPersistence(auth, browserSessionPersistence); } catch (e) {}
 
 const TEACHER_EMAIL = 'heruprananda@gmail.com';
-const AUTH_HASH = "571f842bd9174fe8186e000585f372e3a1823dbef60138cff4312490ebf7d8d6";
-async function sha(t) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
 const $ = id => document.getElementById(id);
 const sk = o => Array.isArray(o) ? o.map(sk) : (o && typeof o === 'object') ? Object.keys(o).sort().reduce((a, k) => (a[k] = sk(o[k]), a), {}) : o;
 const J = o => JSON.stringify(sk(o));
@@ -2509,6 +2497,7 @@ const ini = n => String(n || '').split(' ').filter(Boolean).map(w => w[0].toUppe
 const summ = s => ({ n: ini(s.name), c: s.class, p: +s.scorePraktik || 0, f: parseFloat(s.fitnessScore) || 0, a: s.attendance || 0, t: s.totalClasses || 0, x: xpOf(s), g: (s.grades || []).map(g => ({ t: String(g.topic), s: +g.score || 0 })) });
 const stub = (id, v) => ({ id, nis: id, name: v.n, class: v.c, scorePraktik: v.p, fitnessScore: String(v.f), attendance: v.a, totalClasses: v.t, _xp: v.x,
     grades: Object.values(v.g || {}).map(x => ({ topic: x.t, score: x.s, category: '', status: '' })), tasks: [], attendanceLog: [], recommendations: [], badges: [], gender: 'L', fitnessStatus: '', notes: '', bmi: '', tkjiData: null });
+const cacheStu = m => { try { localStorage.setItem('sf_stu_' + m.id, JSON.stringify(m)); } catch (e) {} };
 function stopSync() { unsubs.forEach(u => u()); unsubs = []; }
 
 // ---------- Kirim perubahan ke server ----------
@@ -2527,7 +2516,7 @@ function push() {
         const me = studentsData.find(s => s.id === currentStudentId);
         if (!me) return;
         const c = clean(me); const j = J(c);
-        if (sent[me.id] !== j) { sent[me.id] = j; set(ref(db, 'students/' + me.id), c).catch(fail); set(ref(db, 'scores/' + me.id), summ(me)).catch(fail); }
+        if (sent[me.id] !== j) { sent[me.id] = j; cacheStu(me); set(ref(db, 'students/' + me.id), c).catch(fail); set(ref(db, 'scores/' + me.id), summ(me)).catch(fail); }
     }
 }
 
@@ -2543,12 +2532,21 @@ window.loginWithNISN = async function () {
     const n = $('input-nisn').value.trim(), p = $('input-pin').value.trim();
     if (!n || !p) { alert('Isi NISN dan PIN terlebih dahulu.\n(PIN awal = 4 digit terakhir NISN)'); return; }
     if (badKey(n)) { alert('NISN tidak valid.'); return; }
-    let snap;
-    try { snap = await get(ref(db, 'students/' + n)); } catch (e) { alert('Tidak bisa terhubung ke server (' + (e.code || e.message) + ').'); return; }
-    if (!snap.exists()) { alert('NISN tidak ditemukan. Minta guru mendaftarkan data Anda terlebih dahulu.'); return; }
-    const me = norm(snap.val()); me.id = me.id || n;
+    let raw = null, offline = false;
+    try {
+        if (!navigator.onLine) throw new Error('offline');
+        const snap = await get(ref(db, 'students/' + n));
+        if (!snap.exists()) { alert('NISN tidak ditemukan. Minta guru mendaftarkan data Anda terlebih dahulu.'); return; }
+        raw = snap.val();
+    } catch (e) {
+        let c = null; try { c = localStorage.getItem('sf_stu_' + n); } catch (x) {}
+        if (!c) { alert('Tidak bisa terhubung ke server (' + (e.code || e.message) + '). Pastikan internet aktif.'); return; }
+        raw = JSON.parse(c); offline = true;
+    }
+    const me = norm(raw); me.id = me.id || n;
     if ((me.pin || String(me.nis).slice(-4)) !== p) { alert('NISN atau PIN salah.'); return; }
     if (!(me.consent && me.consent.v >= 1)) {
+        if (offline) { alert('Persetujuan privasi pertama kali harus dilakukan saat internet aktif.'); return; }
         const ok = await askConsent();
         if (!ok) { alert('Tanpa persetujuan, akun tidak dapat digunakan. Hubungi guru jika ada pertanyaan.'); return; }
         me.consent = { v: 1, at: Date.now() };
@@ -2557,15 +2555,24 @@ window.loginWithNISN = async function () {
     if (window.endJuri) endJuri();
     stopSync(); mode = 'student'; synced = false;
     Object.keys(sent).forEach(k => delete sent[k]);
+    me.loginCount = (me.loginCount || 0) + 1; me.lastLogin = Date.now();
     currentStudentId = me.id; studentsData = [me]; sent[me.id] = J(clean(me));
-    set(ref(db, 'scores/' + me.id), summ(me)).catch(() => {});
+    cacheStu(me);
+    if (offline) {
+        // offline: jangan menimpa seluruh data dengan salinan lama; kirim hanya catatan masuk
+        set(ref(db, 'students/' + me.id + '/loginCount'), me.loginCount).catch(() => {});
+        set(ref(db, 'students/' + me.id + '/lastLogin'), me.lastLogin).catch(() => {});
+    } else {
+        set(ref(db, 'students/' + me.id), clean(me)).catch(() => {});
+        set(ref(db, 'scores/' + me.id), summ(me)).catch(() => {});
+    }
     const refresh = () => loadStudentData(currentStudentId);
     unsubs.push(onValue(ref(db, 'students/' + me.id), sn => {
         if (!sn.exists()) return;
         const v = norm(sn.val()), j = J(clean(v));
         if (sent[me.id] === j) return;
         sent[me.id] = j;
-        studentsData = studentsData.map(x => x.id === me.id ? v : x); refresh();
+        studentsData = studentsData.map(x => x.id === me.id ? v : x); cacheStu(v); refresh();
     }, fail));
     unsubs.push(onValue(ref(db, 'scores'), sn => {
         const all = sn.val() || {}, own = studentsData.find(x => x.id === me.id) || me;
@@ -2575,6 +2582,7 @@ window.loginWithNISN = async function () {
     loadStudentData(me.id);
     $('screen-welcome').classList.add('hidden'); switchStudentTab('dashboard');
     alert('Selamat datang, ' + me.name.split(' ')[0] + '! 👋');
+    if (offline) alert('Mode offline: memakai data terakhir. Perubahan dikirim saat internet tersambung (jangan tutup halaman sebelum itu).');
 };
 const _w = showWelcomeScreen;
 showWelcomeScreen = function () { _w(); if (!isAdminMode) { stopSync(); mode = 'none'; $('input-pin').value = ''; if (window.endJuri) endJuri(); } };
@@ -2583,9 +2591,9 @@ showWelcomeScreen = function () { _w(); if (!isAdminMode) { stopSync(); mode = '
 window.authenticateAdmin = async function (e) {
     e.preventDefault();
     const em = $('auth-email').value.trim().toLowerCase(), pw = $('auth-password').value.trim();
-    let fbOk = false, code = '';
-    if (em === TEACHER_EMAIL) { try { await signInWithEmailAndPassword(auth, em, pw); fbOk = true; } catch (err) { code = err.code || ''; } }
-    if (!fbOk && await sha(em + ':' + pw) !== AUTH_HASH) { alert('Email atau Password Guru salah! Akses ditolak.'); return; }
+    if (em !== TEACHER_EMAIL) { alert('Email atau Password Guru salah! Akses ditolak.'); return; }
+    try { await signInWithEmailAndPassword(auth, em, pw); }
+    catch (err) { alert(err.code === 'auth/network-request-failed' ? 'Tidak ada koneksi internet.' : 'Email atau password salah (' + (err.code || err.message) + ').'); return; }
     isAdminMode = true; closeAdminAuthModal();
     $('screen-welcome').classList.add('hidden');
     if (window.endJuri) endJuri();
@@ -2594,7 +2602,6 @@ window.authenticateAdmin = async function (e) {
     $('admin-btn-text').innerText = 'Kembali ke Mode Siswa';
     $('view-student').classList.add('hidden'); $('view-admin').classList.remove('hidden');
     startTeacher();
-    if (!fbOk) alert('Masuk memakai password lokal. Akun Firebase Authentication belum aktif (' + (code || 'tidak ada koneksi') + '), jadi database belum terlindungi penuh. Lihat petunjuk pengamanan.');
 };
 function startTeacher() {
     stopSync(); mode = 'teacher'; synced = false;
@@ -2649,8 +2656,11 @@ window.previewSubmissionPhoto = function (input) {
 window.SF_GAME = {
     submit: (id, rec) => { if (!badKey(id)) set(ref(db, 'game/scores/' + id), rec).catch(fail); },
     listen: cb => onValue(ref(db, 'game/scores'), sn => cb(sn.val() || {}), e => console.warn(e)),
-    reset: () => set(ref(db, 'game/scores'), null).catch(fail)
+    reset: () => set(ref(db, 'game/scores'), null).catch(fail),
+    pushQ: arr => { if (mode !== 'teacher') return false; set(ref(db, 'game/questions'), clean(arr)).catch(fail); return true; },
+    listenQ: cb => onValue(ref(db, 'game/questions'), sn => cb(sn.val()), e => console.warn(e))
 };
+SF_GAME.listenQ(v => { if (window.SF_BANKUI) SF_BANKUI.remote(v ? (Array.isArray(v) ? v : Object.values(v)) : null); });
 window.SF = { ok: true };
 </script>
 <script>
@@ -2659,7 +2669,7 @@ window.SF = { ok: true };
     const $ = id => document.getElementById(id);
     const E = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const STAGES = 5, LIVES = 3, W = 640, H = 300, GY = 250, PX = 84;
-    const BANK = [
+    const DEFAULT_BANK = [
         { q: 'Berapa jumlah pemain bola voli dalam satu tim yang berada di lapangan?', o: ['4 orang', '5 orang', '6 orang', '7 orang'], a: 2 },
         { q: 'Berapa jumlah pemain sepak bola dalam satu tim di lapangan (termasuk penjaga gawang)?', o: ['9 orang', '10 orang', '11 orang', '12 orang'], a: 2 },
         { q: 'Berapa jumlah pemain bola basket dalam satu tim yang bermain di lapangan?', o: ['4 orang', '5 orang', '6 orang', '7 orang'], a: 1 },
@@ -2682,6 +2692,8 @@ window.SF = { ok: true };
         { q: 'Pendinginan setelah berolahraga bertujuan untuk...', o: ['Meningkatkan denyut nadi', 'Mengembalikan kondisi tubuh ke keadaan normal', 'Menambah kelelahan otot', 'Menghentikan pernapasan'], a: 1 },
         { q: 'Servis dalam permainan bola voli dilakukan dari...', o: ['Dalam lapangan dekat net', 'Belakang garis akhir lapangan', 'Garis tengah lapangan', 'Samping tiang net'], a: 1 }
     ];
+    let BANK = DEFAULT_BANK.slice();
+    window.SF_BANK = { get: () => BANK, set: a => { BANK = a.length ? a : DEFAULT_BANK.slice(); }, def: () => DEFAULT_BANK };
     const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
     const prep = q => { const ix = shuffle([0, 1, 2, 3]); return { q: q.q, o: ix.map(i => q.o[i]), a: ix.indexOf(q.a) }; };
     const rnd = (a, b) => a + Math.random() * (b - a);
@@ -2726,6 +2738,7 @@ window.SF = { ok: true };
     // ---------- Skor & peringkat ----------
     const LKEY = 'sf_game_scores';
     let scores = {};
+    window.getGameScores = () => scores;
     try { scores = JSON.parse(localStorage.getItem(LKEY) || '{}') || {}; } catch (e) {}
     const cache = () => { try { localStorage.setItem(LKEY, JSON.stringify(scores)); } catch (e) {} };
     const sorted = cls => Object.entries(scores).map(([id, r]) => ({ id, ...r })).filter(r => !cls || r.c === cls).sort((a, b) => b.s - a.s || a.t - b.t);
@@ -2784,7 +2797,7 @@ window.SF = { ok: true };
         $('g-lives').textContent = G ? '❤️'.repeat(Math.max(0, G.lives)) + '🖤'.repeat(LIVES - Math.max(0, G.lives)) : '❤️❤️❤️';
     }
     function newGame() {
-        G = { owner: currentStudentId, stage: 1, score: 0, lives: LIVES, passed: 0, need: needFor(1), speed: speedFor(1), y: GY, vy: 0, onGround: true, obs: [], stars: [], next: 320, inv: 0, dist: 0, qs: shuffle(BANK).slice(0, STAGES).map(prep) };
+        G = { owner: currentStudentId, stage: 1, score: 0, lives: LIVES, passed: 0, need: needFor(1), speed: speedFor(1), y: GY, vy: 0, onGround: true, obs: [], stars: [], next: 320, inv: 0, dist: 0, qs: (() => { let a = shuffle(BANK); while (a.length < STAGES) a = a.concat(shuffle(BANK)); return a.slice(0, STAGES).map(prep); })() };
         hud(); $('g-overlay').classList.add('hidden'); $('g-quiz').classList.add('hidden'); quizOpen = false; resume();
     }
     function overlay(title, html, btn, fn) {
@@ -2920,6 +2933,7 @@ window.SF = { ok: true };
         m.onclick = e => { if (e.target === m && id !== 'm-consent') m.classList.add('hidden'); };
         return m;
     }
+    window._modal = modal;
     const closeRow = id => `<div class="text-right pt-2"><button type="button" onclick="document.getElementById('${id}').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 font-semibold text-xs">Tutup</button></div>`;
     const H = t => `<h4 class="font-bold text-slate-900 mt-2">${t}</h4>`;
 
@@ -2954,8 +2968,8 @@ window.SF = { ok: true };
 
     // ---------- Panduan penggunaan ----------
     const GUIDE = {
-        siswa: ['Masuk dengan NISN dan PIN (PIN awal = 4 digit terakhir NISN). Saat pertama masuk, baca dan setujui pemberitahuan privasi.', '<b>Rapor &amp; Kebugaran</b>: lihat profil, nilai per materi beserta peringkat kelas, grafik TKJI per bulan, lencana, catatan guru, dan rekomendasi latihan. Klik "Lihat Detail Presensi" untuk riwayat kehadiran.', '<b>Tugas Terbaru</b>: kerjakan tes soal langsung di web atau kirim tugas berupa tautan/foto. Nilai kuis otomatis masuk ke rapor.', '<b>Alat Latihan</b>: kalkulator IMT (tersimpan otomatis), stopwatch, tantangan harian push-up, sit-up, dan flexibility dengan hitungan hari beruntun, serta papan peringkat XP kelas.', '<b>Sumber Belajar</b>: klik sampul buku untuk membaca. Jika tidak tampil, pilih "Buka di tab baru".', '<b>Game</b>: lompati rintangan (Spasi atau tombol LOMPAT), selesaikan 5 stage, dan jawab soal di tiap pergantian stage. Skor masuk peringkat kelas secara realtime.', 'Selesai? Tekan "Ganti Siswa" agar akunmu tidak terbuka di perangkat bersama.'],
-        guru: ['Klik "Mode Guru / Admin", lalu masuk dengan email dan password guru.', 'Tambahkan siswa lewat "Tambah Siswa Baru" atau "Impor Daftar" (tempel kolom NISN dan Nama dari Excel/Spreadsheet).', '"Edit Data &amp; Asesmen": Profil &amp; TKJI (tinggi, berat, skor tiap bulan), Nilai Per Materi (rata-rata praktik dihitung otomatis), Presensi per tanggal, dan Tugas.', '"Buat Tugas Massal" mengirim tugas atau kuis ke semua siswa satu kelas.', 'Kelola Sumber Belajar dan lihat Peringkat Nilai serta Peringkat Game per kelas. Perubahan tampil di semua perangkat secara realtime.', 'Tombol "Hapus" pada daftar murid menghapus siswa beserta seluruh datanya dari server (untuk permintaan penghapusan data).', 'Gunakan "Ekspor" untuk cadangan data. Keluar dengan "Kembali ke Mode Siswa".'],
+        siswa: ['Masuk dengan NISN dan PIN (PIN awal = 4 digit terakhir NISN). Saat pertama masuk, baca dan setujui pemberitahuan privasi.', '<b>Rapor &amp; Kebugaran</b>: lihat profil, nilai per materi beserta peringkat kelas, grafik TKJI per bulan, lencana, catatan guru, dan rekomendasi latihan. Klik "Lihat Detail Presensi" untuk riwayat kehadiran.', '<b>Tugas Terbaru</b>: kerjakan tes soal langsung di web atau kirim tugas berupa tautan/foto. Nilai kuis otomatis masuk ke rapor.', '<b>Alat Latihan</b>: kalkulator IMT (tersimpan otomatis), stopwatch, tantangan harian push-up, sit-up, dan flexibility dengan hitungan hari beruntun, serta papan peringkat XP kelas.', '<b>Sumber Belajar</b>: klik sampul buku untuk membaca. Jika tidak tampil, pilih "Buka di tab baru".', '<b>Game</b>: lompati rintangan (Spasi atau tombol LOMPAT), selesaikan 5 stage, dan jawab soal di tiap pergantian stage. Skor masuk peringkat kelas secara realtime.', '<b>Beri Penilaian</b>: di bagian bawah halaman Rapor, isi survei singkat 6 pertanyaan agar aplikasi bisa diperbaiki.', '<b>Pasang di HP</b>: di Chrome Android pilih menu ⋮ → "Pasang aplikasi" (atau tombol "Pasang aplikasi di HP" di layar awal). Di iPhone (Safari) pilih Bagikan → "Tambah ke Layar Utama". Aplikasi bisa dibuka tanpa internet bagi siswa yang pernah masuk di HP itu.', 'Selesai? Tekan "Ganti Siswa" agar akunmu tidak terbuka di perangkat bersama.'],
+        guru: ['Klik "Mode Guru / Admin", lalu masuk dengan email dan password guru.', 'Tambahkan siswa lewat "Tambah Siswa Baru" atau "Impor Daftar" (tempel kolom NISN dan Nama dari Excel/Spreadsheet).', '"Edit Data &amp; Asesmen": Profil &amp; TKJI (tinggi, berat, skor tiap bulan), Nilai Per Materi (rata-rata praktik dihitung otomatis), Presensi per tanggal, dan Tugas.', '"Buat Tugas Massal" mengirim tugas atau kuis ke semua siswa satu kelas.', 'Kelola Sumber Belajar dan lihat Peringkat Nilai serta Peringkat Game per kelas. Perubahan tampil di semua perangkat secara realtime.', 'Tombol "Hapus" pada daftar murid menghapus siswa beserta seluruh datanya dari server (untuk permintaan penghapusan data).', '<b>Statistik Pemakaian &amp; Laporan</b>: lihat grafik perkembangan kelas, sebaran kebugaran, hasil survei siswa; unduh CSV atau cetak laporan PDF (identitas siswa disamarkan secara bawaan).', '<b>Bank Soal Game</b>: tambah, ubah, atau hapus soal yang muncul di game (minimal 5 soal).', 'Gunakan "Ekspor" untuk cadangan data. Keluar dengan "Kembali ke Mode Siswa".'],
         juri: ['Di layar awal, tekan "Mode Juri / Coba Aplikasi". Seluruh data yang tampil adalah <b>DATA CONTOH</b> dan tidak tersambung ke data siswa asli.', 'Anda langsung masuk sebagai siswa contoh. Jelajahi semua tab: Rapor &amp; Kebugaran, Tugas Terbaru, Alat Latihan, Sumber Belajar, dan Game.', 'Tekan "Mode Guru / Admin" untuk membuka dasbor guru tanpa password: kelola nilai, presensi, tugas, impor daftar, peringkat, dan grafik.', 'Perubahan di Mode Juri bersifat sementara dan hilang saat halaman dimuat ulang. Tekan "Ganti Siswa" untuk keluar dari Mode Juri.']
     };
     window.guideTab = k => {
@@ -3048,6 +3062,219 @@ window.SF = { ok: true };
         if (isAdminMode && !window.JURI) { _tj(); showWelcomeScreen(); return; }
         _tj();
     };
+})();
+</script>
+<script>
+/* ===== UPGRADE v8: statistik & laporan, grafik kelas, survei, editor bank soal, PWA ===== */
+(function () {
+    const $ = id => document.getElementById(id);
+    const E = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const cur = () => studentsData.find(s => s.id === currentStudentId);
+    const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+    const r1 = v => v == null || isNaN(v) ? '-' : (Math.round(v * 10) / 10).toString().replace('.', ',');
+    const QS = ['Aplikasi ini mudah digunakan.', 'Tampilan aplikasi menarik dan jelas.', 'Fitur tugas dan kuis membantu saya belajar PJOK.', 'Memantau perkembangan kebugaran membuat saya lebih semangat berolahraga.', 'Game dan peringkat membuat belajar lebih menyenangkan.', 'Saya ingin terus menggunakan aplikasi ini.'];
+
+    // ---------- Survei umpan balik siswa ----------
+    const sc = document.createElement('div');
+    sc.className = 'bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3';
+    sc.innerHTML = `<div><h3 class="font-bold text-slate-900 text-sm">💬 Bantu kami menilai aplikasi ini</h3><p class="text-xs text-slate-500">Jawab 6 pertanyaan singkat. Masukanmu dipakai guru untuk memperbaiki aplikasi.</p></div><button type="button" id="sv-open" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs">Beri Penilaian</button>`;
+    $('tab-content-dashboard').appendChild(sc);
+    window.openSurvey = function () {
+        const me = cur(); if (!me) return;
+        const ans = me.feedback && me.feedback.a ? me.feedback.a.map(Number) : QS.map(() => 0);
+        const m = _modal('m-survey', `<h3 class="font-extrabold text-base text-slate-900">💬 Penilaian Aplikasi</h3>
+            <p>Pilih angka 1 (sangat tidak setuju) sampai 5 (sangat setuju).</p>
+            ${QS.map((t, i) => `<div class="bg-slate-50 border rounded-xl p-3"><p class="font-semibold text-xs">${i + 1}. ${t}</p><div class="flex gap-1.5 mt-2">${[1, 2, 3, 4, 5].map(n => `<button type="button" data-q="${i}" data-n="${n}" class="sv-b flex-1 py-1.5 rounded-lg border text-xs font-bold bg-white"></button>`).join('')}</div></div>`).join('')}
+            <textarea id="sv-c" rows="3" maxlength="300" placeholder="Saran atau komentar (opsional). Jangan menulis data pribadi." class="w-full border rounded-lg p-2 text-xs">${E(me.feedback && me.feedback.c || '')}</textarea>
+            <div class="flex justify-end gap-2"><button type="button" onclick="document.getElementById('m-survey').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-slate-100 font-semibold text-xs">Batal</button><button id="sv-go" type="button" class="px-5 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs">Kirim</button></div>`);
+        const paint = () => m.querySelectorAll('.sv-b').forEach(b => { const on = ans[+b.dataset.q] === +b.dataset.n; b.textContent = b.dataset.n; b.classList.toggle('bg-blue-600', on); b.classList.toggle('text-white', on); b.classList.toggle('bg-white', !on); });
+        m.querySelectorAll('.sv-b').forEach(b => b.onclick = () => { ans[+b.dataset.q] = +b.dataset.n; paint(); });
+        paint();
+        $('sv-go').onclick = () => {
+            if (ans.some(v => !v)) { alert('Jawab semua pertanyaan terlebih dahulu.'); return; }
+            me.feedback = { at: Date.now(), a: ans, c: $('sv-c').value.trim().slice(0, 300) };
+            saveStorageData(); m.classList.add('hidden');
+            alert('Terima kasih atas penilaianmu! 🙏' + (window.JURI ? '\n(Mode Juri: tidak disimpan)' : ''));
+        };
+    };
+    $('sv-open').onclick = openSurvey;
+
+    // ---------- Statistik ----------
+    function stats(cls) {
+        const L = studentsData.filter(s => !cls || s.class === cls), n = L.length;
+        const quiz = []; L.forEach(s => (s.tasks || []).forEach(t => { const m = String(t.status).match(/Nilai Tes: (\d+)/); if (m) quiz.push(+m[1]); }));
+        const fit = {}; L.forEach(s => { const k = s.fitnessStatus || 'Belum dinilai'; fit[k] = (fit[k] || 0) + 1; });
+        const tk = L.filter(s => s.tkjiData && s.tkjiData.months && s.tkjiData.months.length >= 2);
+        const delta = k => tk.map(s => { const a = s.tkjiData[k]; return (+a[a.length - 1] || 0) - (+a[0] || 0); });
+        const maxM = Math.max(0, ...L.map(s => (s.tkjiData && s.tkjiData.months || []).length));
+        const mAvg = k => Array.from({ length: maxM }, (_, i) => avg(L.filter(s => s.tkjiData && s.tkjiData[k] && s.tkjiData[k].length > i).map(s => +s.tkjiData[k][i] || 0)));
+        const fb = L.filter(s => s.feedback && s.feedback.a && s.feedback.a.length);
+        const qAvg = QS.map((_, i) => avg(fb.map(s => +s.feedback.a[i] || 0)));
+        const topics = {}; L.forEach(s => (s.grades || []).forEach(g => { const t = String(g.topic).trim(); (topics[t] = topics[t] || []).push(+g.score || 0); }));
+        const gsAll = window.getGameScores ? getGameScores() : {};
+        const game = L.filter(s => gsAll[s.id]).map(s => gsAll[s.id].s);
+        const tasks = L.reduce((a, s) => a + (s.tasks || []).length, 0), done = L.reduce((a, s) => a + (s.tasks || []).filter(t => String(t.status).includes('Selesai')).length, 0);
+        return {
+            L, n, consent: L.filter(s => s.consent).length, loggedIn: L.filter(s => s.lastLogin).length, logins: L.reduce((a, s) => a + (s.loginCount || 0), 0),
+            tasks, done, quiz, praktik: avg(L.filter(s => (s.grades || []).length).map(s => +s.scorePraktik || 0)),
+            hadir: avg(L.filter(s => s.totalClasses).map(s => s.attendance / s.totalClasses * 100)), fit, maxM,
+            m: { pushup: mAvg('pushup'), situp: mAvg('situp'), flexibility: mAvg('flexibility') }, nTk: tk.length,
+            d: { pushup: delta('pushup'), situp: delta('situp'), flexibility: delta('flexibility') },
+            fb, qAvg, overall: avg(qAvg.filter(v => v != null)), agree: fb.length ? Math.round(fb.filter(s => avg(s.feedback.a.map(Number)) >= 4).length / fb.length * 100) : null,
+            comments: fb.map(s => s.feedback.c).filter(Boolean), topicAvg: Object.entries(topics).map(([t, v]) => [t, avg(v), v.length]), game
+        };
+    }
+    const impr = (d) => d.length ? `${r1(avg(d))} (${Math.round(d.filter(x => x > 0).length / d.length * 100)}% siswa naik)` : '-';
+
+    const card = document.createElement('div');
+    card.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden';
+    card.innerHTML = `<div class="p-4 border-b flex flex-wrap items-center justify-between gap-2">
+        <div><h3 class="font-bold text-slate-900 text-sm">📊 Statistik Pemakaian &amp; Laporan</h3><span class="text-xs text-slate-500">Dihitung otomatis dari data nyata aplikasi</span></div>
+        <select id="st-class" class="border rounded-lg p-1.5 text-xs font-semibold"></select></div>
+        <div id="st-demo" class="hidden bg-red-50 text-red-700 text-xs font-bold px-4 py-2">DATA CONTOH (Mode Juri): jangan dipakai sebagai bukti implementasi.</div>
+        <div class="p-4 space-y-4">
+          <div id="st-tiles" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+          <div class="grid lg:grid-cols-2 gap-4">
+            <div class="border rounded-xl p-3"><h4 class="font-bold text-xs mb-2">Perkembangan TKJI rata-rata kelas per bulan</h4><div class="relative h-56"><canvas id="st-ch-tkji"></canvas></div></div>
+            <div class="border rounded-xl p-3"><h4 class="font-bold text-xs mb-2">Sebaran status kebugaran</h4><div class="relative h-56"><canvas id="st-ch-fit"></canvas></div></div>
+            <div class="border rounded-xl p-3 lg:col-span-2"><h4 class="font-bold text-xs mb-2">Rata-rata nilai per materi</h4><div class="relative h-56"><canvas id="st-ch-topic"></canvas></div></div>
+          </div>
+          <div class="border rounded-xl p-3"><h4 class="font-bold text-xs mb-2">Hasil survei kepuasan siswa</h4><div id="st-survey" class="space-y-2 text-xs"></div></div>
+          <div class="flex flex-wrap items-center gap-3 pt-1">
+            <button id="st-csv" type="button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs">⬇ Unduh Data (CSV)</button>
+            <button id="st-pdf" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs">🖨 Cetak / Simpan Laporan (PDF)</button>
+            <label class="text-xs text-slate-600 flex items-center gap-1.5"><input type="checkbox" id="st-names"> Sertakan nama siswa (bawaan: disamarkan)</label>
+          </div>
+        </div>`;
+    $('view-admin').appendChild(card);
+
+    const charts = {};
+    function mk(id, cfg) { const c = $(id); if (!c || typeof Chart === 'undefined') return; if (charts[id]) charts[id].destroy(); charts[id] = new Chart(c.getContext('2d'), cfg); }
+    const base = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } } };
+    const tile = (l, v, s) => `<div class="bg-slate-50 border rounded-xl p-3"><div class="text-[10px] font-bold text-slate-400 uppercase">${l}</div><div class="text-lg font-extrabold text-slate-800">${v}</div><div class="text-[10px] text-slate-500">${s || ''}</div></div>`;
+    function renderStats() {
+        const sel = $('st-class'), pv = sel.value, classes = [...new Set(studentsData.map(s => s.class))];
+        sel.innerHTML = '<option value="">Semua Kelas</option>' + classes.map(c => `<option value="${E(c)}">${E(c)}</option>`).join('');
+        sel.value = classes.includes(pv) ? pv : '';
+        const S = stats(sel.value);
+        $('st-demo').classList.toggle('hidden', !window.JURI);
+        const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '-';
+        $('st-tiles').innerHTML = [
+            tile('Siswa terdaftar', S.n, `${S.consent} sudah setuju privasi`),
+            tile('Pernah masuk', pct(S.loggedIn, S.n), `${S.logins} kali masuk`),
+            tile('Tugas selesai', pct(S.done, S.tasks), `${S.done} dari ${S.tasks} tugas`),
+            tile('Rata-rata kuis', S.quiz.length ? r1(avg(S.quiz)) : '-', `${S.quiz.length} pengerjaan`),
+            tile('Rata-rata nilai praktik', r1(S.praktik), 'dari nilai per materi'),
+            tile('Kehadiran rata-rata', S.hadir == null ? '-' : Math.round(S.hadir) + '%', 'presensi praktik'),
+            tile('Pemain game', S.game.length, S.game.length ? `skor rata-rata ${r1(avg(S.game))}` : 'belum ada'),
+            tile('Kepuasan siswa', S.overall == null ? '-' : r1(S.overall) + ' / 5', S.fb.length ? `${S.fb.length} responden, ${S.agree}% setuju` : 'belum ada survei')
+        ].join('') + [
+            tile('Peningkatan push-up', impr(S.d.pushup), `${S.nTk} siswa punya ≥ 2 bulan data`),
+            tile('Peningkatan sit-up', impr(S.d.situp), 'selisih bulan terakhir – pertama'),
+            tile('Peningkatan flexibility', impr(S.d.flexibility), 'dalam cm')
+        ].join('');
+        const lab = Array.from({ length: S.maxM }, (_, i) => 'Bulan ' + (i + 1));
+        mk('st-ch-tkji', { type: 'line', data: { labels: lab, datasets: [{ label: 'Push-up', data: S.m.pushup, borderColor: '#2563eb', tension: .3 }, { label: 'Sit-up', data: S.m.situp, borderColor: '#4f46e5', tension: .3 }, { label: 'Flexibility (cm)', data: S.m.flexibility, borderColor: '#059669', tension: .3 }] }, options: { ...base, scales: { y: { beginAtZero: true } } } });
+        const order = ['Sangat Baik', 'Baik', 'Cukup', 'Kurang', 'Belum dinilai'], keys = order.filter(k => S.fit[k]).concat(Object.keys(S.fit).filter(k => !order.includes(k)));
+        mk('st-ch-fit', { type: 'bar', data: { labels: keys, datasets: [{ label: 'Jumlah siswa', data: keys.map(k => S.fit[k]), backgroundColor: '#3b82f6' }] }, options: { ...base, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } } });
+        mk('st-ch-topic', { type: 'bar', data: { labels: S.topicAvg.map(t => t[0]), datasets: [{ label: 'Rata-rata nilai', data: S.topicAvg.map(t => Math.round(t[1] * 10) / 10), backgroundColor: '#6366f1' }] }, options: { ...base, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, max: 100 } } } });
+        $('st-survey').innerHTML = S.fb.length ? QS.map((q, i) => `<div><div class="flex justify-between gap-2"><span>${q}</span><b>${r1(S.qAvg[i])}</b></div><div class="h-2 bg-slate-100 rounded"><div class="h-2 bg-blue-500 rounded" style="width:${(S.qAvg[i] || 0) / 5 * 100}%"></div></div></div>`).join('') +
+            (S.comments.length ? `<div class="pt-2"><b>Saran siswa:</b><ul class="list-disc list-inside text-slate-600 mt-1 space-y-0.5">${S.comments.slice(0, 8).map(c => `<li>${E(c)}</li>`).join('')}</ul></div>` : '') : '<p class="text-slate-400">Belum ada siswa yang mengisi survei.</p>';
+    }
+    let t8 = null;
+    const _r8 = renderAdminStudentList;
+    renderAdminStudentList = function () { _r8(); clearTimeout(t8); t8 = setTimeout(renderStats, 250); };
+    $('st-class').onchange = renderStats;
+    if (window.getGameScores) setInterval(() => { if (!$('view-admin').classList.contains('hidden')) renderStats(); }, 20000);
+
+    // ---------- Ekspor ----------
+    const stamp = () => new Date().toISOString().slice(0, 10);
+    const codeOf = L => { const o = L.slice().sort((a, b) => String(a.id).localeCompare(String(b.id))); return s => 'S' + String(o.indexOf(s) + 1).padStart(2, '0'); };
+    function download(name, text, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); }
+    $('st-csv').onclick = () => {
+        const S = stats($('st-class').value), names = $('st-names').checked, code = codeOf(S.L), gs = window.getGameScores ? getGameScores() : {};
+        const head = ['Kode'].concat(names ? ['Nama'] : [], ['Kelas', 'Rata_Praktik', 'Kebugaran', 'Kehadiran_%', 'Tugas_Selesai', 'Tugas_Total', 'Pushup_Awal', 'Pushup_Akhir', 'Situp_Awal', 'Situp_Akhir', 'Flex_Awal', 'Flex_Akhir', 'IMT', 'Skor_Game', 'Rating_Survei']);
+        const f = (s, k, i) => { const a = s.tkjiData && s.tkjiData[k]; return a && a.length ? a[i === 0 ? 0 : a.length - 1] : ''; };
+        const rows = S.L.slice().sort((a, b) => code(a).localeCompare(code(b))).map(s => [code(s)].concat(names ? [s.name] : [], [s.class, s.scorePraktik, s.fitnessStatus, s.totalClasses ? Math.round(s.attendance / s.totalClasses * 100) : '', (s.tasks || []).filter(t => String(t.status).includes('Selesai')).length, (s.tasks || []).length, f(s, 'pushup', 0), f(s, 'pushup', 1), f(s, 'situp', 0), f(s, 'situp', 1), f(s, 'flexibility', 0), f(s, 'flexibility', 1), s.bmi, gs[s.id] ? gs[s.id].s : '', s.feedback && s.feedback.a ? r1(avg(s.feedback.a.map(Number))) : '']));
+        const csv = '\ufeff' + [head].concat(rows).map(r => r.map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
+        download('sportfolio-data-' + stamp() + '.csv', csv, 'text/csv;charset=utf-8');
+    };
+    $('st-pdf').onclick = () => {
+        const cls = $('st-class').value, S = stats(cls), code = codeOf(S.L), names = $('st-names').checked, gs = window.getGameScores ? getGameScores() : {};
+        const tbl = (h, rows) => `<table><thead><tr>${h.map(x => `<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(x => `<td>${E(x)}</td>`).join('')}</tr>`).join('') || '<tr><td colspan="' + h.length + '">Belum ada data.</td></tr>'}</tbody></table>`;
+        const html = `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Laporan SportFolio ${stamp()}</title><style>
+          body{font-family:Arial,sans-serif;color:#0f172a;margin:24px;font-size:12px}h1{font-size:20px;margin:0}h2{font-size:14px;margin:18px 0 6px;border-bottom:2px solid #1d4ed8;padding-bottom:3px}
+          table{border-collapse:collapse;width:100%;margin-bottom:6px}th,td{border:1px solid #cbd5e1;padding:4px 6px;text-align:left}th{background:#eff6ff}.warn{background:#fee2e2;color:#b91c1c;font-weight:bold;padding:8px;margin:10px 0;border:1px solid #fca5a5}
+          .note{color:#475569;font-size:11px}.bar{background:#e2e8f0;height:8px}.bar i{display:block;height:8px;background:#3b82f6}@media print{button{display:none}}</style></head><body>
+          <button onclick="window.print()" style="float:right;padding:8px 14px">Cetak / Simpan PDF</button>
+          <h1>Laporan Penggunaan SportFolio</h1><div class="note">SMP Negeri 36 Pekanbaru · ${cls ? E(cls) : 'Semua kelas'} · dibuat ${new Date().toLocaleString('id-ID')}</div>
+          ${window.JURI ? '<div class="warn">DATA CONTOH (Mode Juri). Laporan ini bukan bukti implementasi.</div>' : ''}
+          <div class="note">${names ? 'Nama siswa dicantumkan.' : 'Identitas siswa disamarkan dengan kode (S01, S02, ...).'} Seluruh angka dihitung otomatis dari data penggunaan aplikasi.</div>
+          <h2>1. Ringkasan penggunaan</h2>${tbl(['Indikator', 'Nilai'], [['Siswa terdaftar', S.n], ['Siswa sudah menyetujui privasi', S.consent], ['Siswa yang pernah masuk', `${S.loggedIn} (${S.n ? Math.round(S.loggedIn / S.n * 100) : 0}%)`], ['Total masuk', S.logins], ['Tugas selesai', `${S.done} dari ${S.tasks}`], ['Rata-rata nilai kuis', S.quiz.length ? r1(avg(S.quiz)) + ' (' + S.quiz.length + ' pengerjaan)' : '-'], ['Rata-rata nilai praktik', r1(S.praktik)], ['Rata-rata kehadiran', S.hadir == null ? '-' : Math.round(S.hadir) + '%'], ['Pemain game', S.game.length + (S.game.length ? ', skor rata-rata ' + r1(avg(S.game)) : '')]])}
+          <h2>2. Perkembangan kebugaran (TKJI)</h2>${tbl(['Bulan', 'Push-up', 'Sit-up', 'Flexibility (cm)'], S.m.pushup.map((_, i) => ['Bulan ' + (i + 1), r1(S.m.pushup[i]), r1(S.m.situp[i]), r1(S.m.flexibility[i])]))}
+          ${tbl(['Komponen', 'Rata-rata perubahan (bulan terakhir – pertama)'], [['Push-up', impr(S.d.pushup)], ['Sit-up', impr(S.d.situp)], ['Flexibility', impr(S.d.flexibility)]])}
+          <h2>3. Sebaran status kebugaran</h2>${tbl(['Status', 'Jumlah siswa'], Object.entries(S.fit))}
+          <h2>4. Rata-rata nilai per materi</h2>${tbl(['Materi', 'Rata-rata', 'Jumlah nilai'], S.topicAvg.map(t => [t[0], r1(t[1]), t[2]]))}
+          <h2>5. Hasil survei kepuasan siswa</h2>${S.fb.length ? tbl(['Pernyataan (skala 1–5)', 'Rata-rata'], QS.map((q, i) => [q, r1(S.qAvg[i])])) + `<p>${S.fb.length} responden · rata-rata keseluruhan ${r1(S.overall)} / 5 · ${S.agree}% siswa setuju (rata-rata ≥ 4).</p>` + (S.comments.length ? '<p><b>Saran siswa:</b></p><ul>' + S.comments.map(c => `<li>${E(c)}</li>`).join('') + '</ul>' : '') : '<p>Belum ada responden.</p>'}
+          <h2>6. Data per siswa</h2>${tbl(['Kode'].concat(names ? ['Nama'] : [], ['Kelas', 'Praktik', 'Kebugaran', 'Kehadiran', 'IMT', 'Skor game']), S.L.slice().sort((a, b) => code(a).localeCompare(code(b))).map(s => [code(s)].concat(names ? [s.name] : [], [s.class, s.scorePraktik, s.fitnessStatus, s.totalClasses ? Math.round(s.attendance / s.totalClasses * 100) + '%' : '-', s.bmi, gs[s.id] ? gs[s.id].s : '-'])))}
+          </body></html>`;
+        const w = window.open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
+        if (!w) alert('Jendela laporan diblokir browser. Izinkan pop-up untuk situs ini, lalu coba lagi.');
+        else setTimeout(() => { try { w.print(); } catch (e) {} }, 700);
+    };
+
+    // ---------- Editor bank soal game ----------
+    const validQ = q => q && typeof q.q === 'string' && q.q.trim() && Array.isArray(q.o) && q.o.length === 4 && q.o.every(x => String(x).trim()) && Number.isInteger(q.a) && q.a >= 0 && q.a < 4;
+    const bk = document.createElement('div');
+    bk.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden';
+    bk.innerHTML = `<div class="p-4 border-b flex flex-wrap items-center justify-between gap-2"><div><h3 class="font-bold text-slate-900 text-sm">📝 Bank Soal Game</h3><span class="text-xs text-slate-500">Soal yang muncul di setiap pergantian stage. Perubahan langsung berlaku di semua perangkat.</span></div>
+        <div class="flex gap-2 text-xs font-bold"><button id="bk-add" type="button" class="bg-blue-600 text-white px-3 py-2 rounded-xl">+ Tambah Soal</button><button id="bk-reset" type="button" class="bg-slate-200 px-3 py-2 rounded-xl">Pulihkan Soal Bawaan</button></div></div>
+        <div id="bk-list" class="p-4 grid gap-2"></div>`;
+    $('view-admin').appendChild(bk);
+    function renderBank() {
+        const arr = SF_BANK.get();
+        $('bk-list').innerHTML = `<p class="text-[11px] text-slate-500">${arr.length} soal. Game memilih 5 soal acak setiap kali main (minimal 5 soal).</p>` + arr.map((q, i) => `<div class="flex items-start gap-2 border rounded-xl p-2 text-xs"><span class="font-bold text-slate-400 w-6">${i + 1}.</span><div class="flex-1 min-w-0"><b class="block">${E(q.q)}</b><span class="text-slate-500">Jawaban benar: ${E(q.o[q.a])}</span></div><button type="button" data-a="e" data-i="${i}" class="bg-blue-50 text-blue-700 font-bold px-2.5 py-1.5 rounded-lg border border-blue-200">Edit</button><button type="button" data-a="d" data-i="${i}" class="bg-red-50 text-red-600 font-bold px-2.5 py-1.5 rounded-lg border border-red-200">Hapus</button></div>`).join('');
+    }
+    function setBank(arr) {
+        SF_BANK.set(arr); renderBank();
+        if (!window.JURI && window.SF_GAME && SF_GAME.pushQ) SF_GAME.pushQ(arr);
+    }
+    window.SF_BANKUI = { remote: v => { if (!v) return; const a = v.filter(validQ); if (a.length) { SF_BANK.set(a); renderBank(); } } };
+    function openBankForm(i) {
+        const q = i >= 0 ? SF_BANK.get()[i] : { q: '', o: ['', '', '', ''], a: 0 };
+        const m = _modal('m-bank', `<h3 class="font-extrabold text-base text-slate-900">${i >= 0 ? 'Edit' : 'Tambah'} Soal</h3>
+            <div><label class="block font-bold mb-1 text-xs">Pertanyaan</label><textarea id="bk-q" rows="3" class="w-full border rounded-lg p-2 text-xs">${E(q.q)}</textarea></div>
+            <div><label class="block font-bold mb-1 text-xs">Pilihan jawaban (pilih yang benar)</label>${q.o.map((o, k) => `<div class="flex items-center gap-2 mb-1.5"><input type="radio" name="bk-a" value="${k}" ${q.a === k ? 'checked' : ''}><input id="bk-o${k}" value="${E(o)}" placeholder="Pilihan ${String.fromCharCode(65 + k)}" class="flex-1 border rounded-lg p-2 text-xs"></div>`).join('')}</div>
+            <div class="flex justify-end gap-2"><button type="button" onclick="document.getElementById('m-bank').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-slate-100 font-semibold text-xs">Batal</button><button id="bk-save" type="button" class="px-5 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs">Simpan</button></div>`);
+        $('bk-save').onclick = () => {
+            const nq = { q: $('bk-q').value.trim(), o: [0, 1, 2, 3].map(k => $('bk-o' + k).value.trim()), a: +(m.querySelector('input[name=bk-a]:checked') || { value: 0 }).value };
+            if (!validQ(nq)) { alert('Isi pertanyaan dan keempat pilihan jawaban.'); return; }
+            const arr = SF_BANK.get().slice(); i >= 0 ? arr[i] = nq : arr.push(nq);
+            setBank(arr); m.classList.add('hidden');
+        };
+    }
+    $('bk-add').onclick = () => openBankForm(-1);
+    $('bk-reset').onclick = () => { if (confirm('Kembalikan seluruh soal ke soal bawaan? Soal buatan Anda akan hilang.')) setBank(JSON.parse(JSON.stringify(SF_BANK.def()))); };
+    $('bk-list').onclick = e => {
+        const b = e.target.closest('button[data-a]'); if (!b) return;
+        const i = +b.dataset.i;
+        if (b.dataset.a === 'e') return openBankForm(i);
+        const arr = SF_BANK.get().slice();
+        if (arr.length <= 5) { alert('Minimal harus ada 5 soal agar game punya soal untuk 5 stage.'); return; }
+        if (confirm('Hapus soal ini?')) { arr.splice(i, 1); setBank(arr); }
+    };
+    renderBank();
+
+    // ---------- PWA ----------
+    let dip = null;
+    const ib = document.createElement('button');
+    ib.className = 'hidden w-full bg-blue-50 hover:bg-blue-100 text-blue-800 font-bold py-2 rounded-xl border border-blue-200 text-xs';
+    ib.textContent = '📲 Pasang aplikasi di HP';
+    document.querySelector('#screen-welcome .grid-cols-2').insertAdjacentElement('afterend', ib);
+    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); dip = e; ib.classList.remove('hidden'); });
+    ib.onclick = async () => { if (!dip) return; dip.prompt(); try { await dip.userChoice; } catch (x) {} dip = null; ib.classList.add('hidden'); };
+    window.addEventListener('appinstalled', () => ib.classList.add('hidden'));
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 })();
 </script>
 </body>
