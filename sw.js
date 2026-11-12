@@ -1,6 +1,6 @@
 /* Service worker SportFolio: aplikasi bisa dibuka tanpa internet.
    Naikkan VERSION setiap kali file aplikasi diperbarui agar cache lama dibuang. */
-const VERSION = 'sportfolio-v1';
+const VERSION = 'sportfolio-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 const ALLOW = ['cdn.tailwindcss.com', 'cdn.jsdelivr.net', 'cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'www.gstatic.com'];
 

@@ -34,7 +34,17 @@
             body { background-color: #ffffff; }
         }
     </style>
-<link rel="manifest" href="manifest.webmanifest">
+    <style>
+/* --- gaya tambahan modul (toast, confetti, bilah XP) --- */
+#toast-wrap{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:320px}
+.toast{background:#1e293b;color:#fff;padding:10px 14px;border-radius:12px;font-size:12px;box-shadow:0 8px 20px #0004;white-space:pre-line;animation:tin .3s}
+@keyframes tin{from{opacity:0;transform:translateX(30px)}}
+.confetti{position:fixed;top:-30px;font-size:22px;z-index:9999;pointer-events:none;animation:fall 2.6s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+.xpbar{height:10px;background:#e2e8f0;border-radius:99px;overflow:hidden}
+.xpbar>div{height:100%;background:linear-gradient(90deg,#f59e0b,#ef4444);transition:width 1s}
+    </style>
+    <link rel="manifest" href="manifest.webmanifest">
     <meta name="theme-color" content="#1d4ed8">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -870,6 +880,64 @@
     <!-- JAVASCRIPT APP LOGIC & DATA MANAGEMENT -->
     <!-- ========================================== -->
     <script>
+// =====================================================================
+//  SPORTFOLIO — SMP Negeri 36 Pekanbaru
+//  STRUKTUR FILE
+//   1. INTI APLIKASI (skrip ini): data, penyimpanan lokal, tampilan siswa & guru,
+//      alat bantu (Util) dan bus kejadian (App).
+//   2. MODUL FITUR (skrip terpisah di bawah, saling bebas; terhubung lewat
+//      App.on(...) dan registerStudentTab(...), bukan dengan menimpa fungsi):
+//      Fitur Siswa & Alat Latihan · Perbaikan Admin · Peringkat Nilai ·
+//      Sumber Belajar · Game · Privasi/Panduan/Juri · Statistik/Survei/Bank Soal
+//   3. MODUL SINKRONISASI (type="module"): Firebase Realtime Database & Authentication.
+//  KEJADIAN App: dataSaved · studentLoaded · adminListRendered · tabChanged ·
+//                welcomeShown · adminEntered · adminLeft
+//  ANTARMUKA ANTAR-MODUL (window): xpOf · getGameScores · SF_BANK / SF_BANKUI (bank soal) ·
+//    SF_GAME (skor & soal game ke Firebase) · SF_RES / SF_pushRes (sumber belajar) ·
+//    openModal · askConsent · startJuri / endJuri · loginWithNISN / authenticateAdmin
+//    (dua fungsi terakhir diganti modul sinkronisasi setelah Firebase termuat).
+//  MENAMBAH FITUR BARU: buat skrip modul baru, daftarkan tab dengan registerStudentTab(...)
+//    dan pasang kait dengan App.on(...). Jangan menimpa fungsi inti.
+// =====================================================================
+const Util = {
+    $: id => document.getElementById(id),
+    esc: v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
+    avg: a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null,
+    cur: () => studentsData.find(s => s.id === currentStudentId)
+};
+const App = {
+    _h: {},
+    on(evt, fn) { (this._h[evt] = this._h[evt] || []).push(fn); },
+    emit(evt, ...args) { (this._h[evt] || []).forEach(fn => { try { fn(...args); } catch (e) { console.error('[App:' + evt + ']', e); } }); }
+};
+
+// Pesan singkat non-blocking (menggantikan alert bawaan browser)
+function toast(msg) {
+    let box = document.getElementById('toast-wrap');
+    if (!box) { box = document.createElement('div'); box.id = 'toast-wrap'; document.body.appendChild(box); }
+    const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; box.appendChild(t);
+    setTimeout(() => t.remove(), 4500);
+}
+window.alert = toast;
+function confetti() {
+    for (let i = 0; i < 45; i++) {
+        const c = document.createElement('span'); c.className = 'confetti'; c.textContent = ['🎉', '⭐', '🏅', '✨'][i % 4];
+        c.style.left = Math.random() * 100 + 'vw'; c.style.animationDelay = Math.random() * .8 + 's';
+        document.body.appendChild(c); setTimeout(() => c.remove(), 3600);
+    }
+}
+
+// Klasifikasi IMT kriteria Asia Pasifik: [label, kelas warna]
+function imtClass(v) {
+    return v < 18.5 ? ['Berat badan kurang', 'text-amber-600'] : v < 23 ? ['Normal', 'text-emerald-600'] : v < 25 ? ['BB lebih', 'text-orange-500'] : v < 30 ? ['Obesitas I', 'text-orange-600'] : ['Obesitas II', 'text-red-600'];
+}
+function imtLabel(h, w) { const v = w / ((h / 100) * (h / 100)); return v.toFixed(1) + ' (' + imtClass(v)[0] + ')'; }
+// Nilai rata-rata praktik = rata-rata semua nilai per materi
+function avgOf(grades) { const g = (grades || []).map(x => +x.score).filter(n => !isNaN(n)); return g.length ? Math.round(Util.avg(g) * 10) / 10 : 0; }
+function avgGrades(st) { return avgOf(st.grades); }
+function syncPraktik() { studentsData.forEach(st => { if (st.grades && st.grades.length) st.scorePraktik = avgGrades(st); }); }
+function updatePraktikField() { document.getElementById('edit-score-praktik').value = avgOf(tempEditGrades); }
+
         // DATA DEFAULT UNTUK INISIALISASI PERTAMA KALI
         const defaultStudentsData = [
             {
@@ -1003,6 +1071,7 @@
             } catch (e) {
                 console.error("Gagal menyimpan ke Local Storage:", e);
             }
+            App.emit('dataSaved');
         }
 
         // FUNGSI MEMBACA DATA DARI LOCAL STORAGE
@@ -1022,93 +1091,71 @@
             }
         }
 
-        function resetToDefaultData() {
-            if (confirm("Apakah Anda yakin ingin mengembalikan seluruh data ke pengaturan awal?")) {
-                localStorage.removeItem('sportfolio_students');
-                loadStorageData();
-                populateStudentDropdown();
-                loadStudentData(currentStudentId);
-                renderAdminStudentList();
-                alert("Data berhasil direset!");
-            }
-        }
-
-        // NAVIGASI LOGIN & LANDING
+        // NAVIGASI: LAYAR AWAL, MODE GURU, TAB SISWA
         function showWelcomeScreen() {
             document.getElementById('screen-welcome').classList.remove('hidden');
+            if (!isAdminMode) App.emit('welcomeShown');
         }
 
-        function quickLogin(nisn) {
-            document.getElementById('input-nisn').value = nisn;
-            loginWithNISN();
+        // Diganti oleh modul sinkronisasi (Firebase) saat berhasil dimuat
+        function loginWithNISN() { alert('Tidak dapat terhubung ke server. Periksa koneksi internet lalu muat ulang halaman.'); }
+        function authenticateAdmin(e) { e.preventDefault(); alert('Tidak dapat terhubung ke Firebase. Periksa koneksi internet lalu muat ulang halaman.'); }
+
+        function enterAdminMode(label) {
+            isAdminMode = true;
+            closeAdminAuthModal();
+            Util.$('screen-welcome').classList.add('hidden');
+            Util.$('current-mode-badge').innerHTML = 'Mode: <strong class="text-yellow-300">' + label + '</strong>';
+            Util.$('admin-btn-text').innerText = 'Kembali ke Mode Siswa';
+            Util.$('view-student').classList.add('hidden');
+            Util.$('view-admin').classList.remove('hidden');
+            renderAdminStudentList();
+            App.emit('adminEntered');
         }
 
-        function loginWithNISN() {
-            const nisn = document.getElementById('input-nisn').value.trim();
-            if (!nisn) {
-                alert('Silakan masukkan NISN terlebih dahulu!');
-                return;
-            }
-            const student = studentsData.find(s => s.nis === nisn || s.id === nisn);
-            if (!student) {
-                alert('NISN tidak ditemukan! Gunakan 2026001 atau 2026002.');
-                return;
-            }
-
-            currentStudentId = student.id;
-            window.currentStudentId = currentStudentId;
-            loadStudentData(currentStudentId);
-            document.getElementById('screen-welcome').classList.add('hidden');
+        function leaveAdminMode() {
+            isAdminMode = false;
+            Util.$('current-mode-badge').innerHTML = 'Mode: <strong class="text-yellow-300">Siswa</strong>';
+            Util.$('admin-btn-text').innerText = 'Mode Guru / Admin';
+            Util.$('view-admin').classList.add('hidden');
+            Util.$('view-student').classList.remove('hidden');
+            App.emit('adminLeft');
+            if (window.JURI) loadStudentData(currentStudentId); else showWelcomeScreen();
         }
 
-        function populateStudentDropdown() {
-            // Dropdown di mode siswa telah dihapus demi privasi akun murid
+        function rememberAdminEmail(email) {
+            try { if (Util.$('auth-remember').checked) localStorage.setItem('sf_admin_email', email); else localStorage.removeItem('sf_admin_email'); } catch (e) {}
         }
 
         function toggleAdminMode() {
-            if (isAdminMode) {
-                // Keluar dari Mode Guru ke Mode Siswa tanpa verifikasi
-                isAdminMode = false;
-                window.isAdminMode = false;
-                const badge = document.getElementById('current-mode-badge');
-                const adminBtnText = document.getElementById('admin-btn-text');
-                const studentView = document.getElementById('view-student');
-                const adminView = document.getElementById('view-admin');
-
-                badge.innerHTML = 'Mode: <strong class="text-yellow-300">Siswa</strong>';
-                adminBtnText.innerText = 'Mode Guru / Admin';
-                adminView.classList.add('hidden');
-                studentView.classList.remove('hidden');
-                loadStudentData(currentStudentId);
-            } else {
-                // Tampilkan Modal Login Guru
-                document.getElementById('auth-email').value = '';
-                document.getElementById('auth-password').value = '';
-                document.getElementById('modal-admin-auth').classList.remove('hidden');
-            }
+            if (isAdminMode) return leaveAdminMode();
+            if (window.JURI) return enterAdminMode('Guru / Admin (Juri)');   // Mode Juri: tanpa login
+            let saved = ''; try { saved = localStorage.getItem('sf_admin_email') || ''; } catch (e) {}
+            Util.$('auth-email').value = saved;
+            Util.$('auth-password').value = '';
+            Util.$('auth-remember').checked = true;
+            Util.$('modal-admin-auth').classList.remove('hidden');
+            (saved ? Util.$('auth-password') : Util.$('auth-email')).focus();
         }
 
         function closeAdminAuthModal() {
             document.getElementById('modal-admin-auth').classList.add('hidden');
         }
 
+        // Tab siswa: tiap modul mendaftarkan tab-nya sendiri
+        const StudentTabs = { dashboard: { btn: 'tab-btn-dashboard', pane: 'tab-content-dashboard' }, tasks: { btn: 'tab-btn-tasks', pane: 'tab-content-tasks' } };
+        function registerStudentTab(key, btn, pane) { StudentTabs[key] = { btn, pane }; }
+        function tabClass(on, rel) {
+            return 'flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition ' + (on ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900') + (rel ? ' relative' : '');
+        }
         function switchStudentTab(tab) {
-            const btnDash = document.getElementById('tab-btn-dashboard');
-            const btnTasks = document.getElementById('tab-btn-tasks');
-            const contentDash = document.getElementById('tab-content-dashboard');
-            const contentTasks = document.getElementById('tab-content-tasks');
-
-            if (tab === 'dashboard') {
-                btnDash.className = "flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition bg-white text-blue-700 shadow-sm";
-                btnTasks.className = "flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900 relative";
-                contentDash.classList.remove('hidden');
-                contentTasks.classList.add('hidden');
-            } else {
-                btnTasks.className = "flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition bg-white text-blue-700 shadow-sm relative";
-                btnDash.className = "flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900";
-                contentTasks.classList.remove('hidden');
-                contentDash.classList.add('hidden');
-            }
+            Object.entries(StudentTabs).forEach(([key, t]) => {
+                const b = Util.$(t.btn), p = Util.$(t.pane);
+                if (!b || !p) return;
+                b.className = tabClass(key === tab, key === 'tasks');
+                p.classList.toggle('hidden', key !== tab);
+            });
+            App.emit('tabChanged', tab);
         }
 
         // SWITCH SUB-TABS INSIDE ADMIN EDIT MODAL
@@ -1173,16 +1220,30 @@
             }
         }
 
+        // Foto tugas dikecilkan (maks 1000 px) agar ringan dikirim ke server
         function previewSubmissionPhoto(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    uploadedPhotoBase64 = e.target.result;
+            const f = input.files && input.files[0]; if (!f) return;
+            const fr = new FileReader();
+            fr.onload = ev => {
+                const im = new Image();
+                im.onload = () => {
+                    const sc = Math.min(1, 1000 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+                    c.width = Math.round(im.width * sc); c.height = Math.round(im.height * sc);
+                    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+                    uploadedPhotoBase64 = c.toDataURL('image/jpeg', .7);
                     document.getElementById('photo-preview-img').src = uploadedPhotoBase64;
                     document.getElementById('photo-preview-wrapper').classList.remove('hidden');
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
+                };
+                im.src = ev.target.result;
+            };
+            fr.readAsDataURL(f);
+        }
+
+        // Tampilkan foto tugas (data URL) di tab baru
+        function viewTaskPhoto(idx) {
+            const src = tempEditTasks[idx] && tempEditTasks[idx].submissionPhoto; if (!src) return;
+            const w = window.open('', '_blank');
+            if (w) w.document.write('<img src="' + src + '" style="max-width:100%">');
         }
 
         function saveTaskSubmission(e) {
@@ -1272,6 +1333,7 @@
                 `;
                 container.appendChild(tr);
             });
+            updatePraktikField();
         }
         function addNewGradeRow() {
             tempEditGrades.push({ topic: "Materi Baru", category: "Praktik", score: 85, status: "Tuntas" });
@@ -1317,7 +1379,7 @@
                 if (t.submissionUrl) {
                     submissionBtnHtml = `<a href="${t.submissionUrl}" target="_blank" class="text-blue-600 underline font-bold"><i class="fa-solid fa-link"></i> Buka Link</a>`;
                 } else if (t.submissionPhoto) {
-                    submissionBtnHtml = `<button type="button" onclick="window.open('${t.submissionPhoto}')" class="text-green-600 underline font-bold"><i class="fa-solid fa-image"></i> Lihat Foto</button>`;
+                    submissionBtnHtml = `<button type="button" onclick="viewTaskPhoto(${idx})" class="text-green-600 underline font-bold"><i class="fa-solid fa-image"></i> Lihat Foto</button>`;
                 } else {
                     submissionBtnHtml = `<span class="text-slate-400 italic">Belum dikirim</span>`;
                 }
@@ -1458,48 +1520,6 @@
             document.getElementById('modal-take-quiz').classList.add('hidden');
         }
 
-        function submitStudentQuiz(e) {
-            e.preventDefault();
-            const taskId = document.getElementById('quiz-runner-task-id').value;
-            const student = studentsData.find(s => s.id === currentStudentId);
-            if (!student) return;
-            const task = student.tasks.find(t => t.id === taskId);
-            if (!task) return;
-
-            let correctCount = 0;
-            const total = task.quizQuestions.length;
-
-            task.quizQuestions.forEach((qItem, qIdx) => {
-                const selected = document.querySelector(`input[name="student-q-ans-${qIdx}"]:checked`);
-                if (selected && parseInt(selected.value) === qItem.answer) {
-                    correctCount++;
-                }
-            });
-
-            const score = Math.round((correctCount / total) * 100);
-            task.status = `Selesai (Nilai Tes: ${score})`;
-            
-            // AUTOMATIC INTEGRATION TO "NILAI PER MATERI"
-            if (!student.grades) student.grades = [];
-            const existingGradeIndex = student.grades.findIndex(g => g.topic === task.title || g.topic.includes(task.title));
-            if (existingGradeIndex >= 0) {
-                student.grades[existingGradeIndex].score = score;
-                student.grades[existingGradeIndex].status = "Tuntas";
-            } else {
-                student.grades.push({
-                    topic: task.title,
-                    category: "Teori / Kuis",
-                    score: score,
-                    status: "Tuntas"
-                });
-            }
-
-            saveStorageData();
-            closeTakeQuizModal();
-            loadStudentData(currentStudentId);
-            alert(`Tes Soal Selesai!\nJawaban Anda Benar ${correctCount} dari ${total} soal.\nSkor Akhir: ${score}\n\n* Nilai kuis ini telah otomatis dimasukkan ke dalam Rapor Nilai Per Materi Anda!`);
-        }
-
         // MODAL BROADCAST TASK MASSAL LOGIC
         let broadcastQuizQuestions = [];
 
@@ -1600,7 +1620,7 @@
         // LOAD STUDENT DATA UPDATES FOR TASKS
         function loadStudentData(studentId) {
             currentStudentId = studentId;
-            window.currentStudentId = currentStudentId;
+            syncPraktik(); saveStorageData();
             const student = studentsData.find(s => s.id === studentId);
             if (!student) return;
 
@@ -1721,6 +1741,7 @@
 
             // Render Fitness Chart
             renderFitnessChart(student.tkjiData);
+            App.emit('studentLoaded', student);
         }
 
         // RENDER CHART.JS FOR TKJI PROGRESS
@@ -1818,6 +1839,7 @@
 
         // ADMIN MANAGEMENT LOGIC
         function renderAdminStudentList() {
+            syncPraktik();
             const list = document.getElementById('admin-student-list');
             list.innerHTML = '';
 
@@ -1843,6 +1865,7 @@
                 `;
                 list.appendChild(tr);
             });
+            App.emit('adminListRendered');
         }
 
         function openAddStudentModal() {
@@ -1871,7 +1894,6 @@
 
             studentsData.push(newStudent);
             saveStorageData();
-            populateStudentDropdown();
             renderAdminStudentList();
             openEditModal(newId);
         }
@@ -1916,7 +1938,6 @@
 
             saveStorageData();
             closeEditModal();
-            populateStudentDropdown();
             renderAdminStudentList();
             loadStudentData(currentStudentId);
             alert("Data murid berhasil diperbarui!");
@@ -1925,53 +1946,23 @@
         // INITIALIZATION ON PAGE LOAD
         window.onload = function() {
             loadStorageData();
-            populateStudentDropdown();
             loadStudentData(currentStudentId);
         };
     </script>
 
-<!-- ===== SPORTFOLIO UPGRADE ===== -->
-<style>
-#toast-wrap{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:320px}
-.toast{background:#1e293b;color:#fff;padding:10px 14px;border-radius:12px;font-size:12px;box-shadow:0 8px 20px #0004;white-space:pre-line;animation:tin .3s}
-@keyframes tin{from{opacity:0;transform:translateX(30px)}}
-.confetti{position:fixed;top:-30px;font-size:22px;z-index:9999;pointer-events:none;animation:fall 2.6s linear forwards}
-@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
-.xpbar{height:10px;background:#e2e8f0;border-radius:99px;overflow:hidden}
-.xpbar>div{height:100%;background:linear-gradient(90deg,#f59e0b,#ef4444);transition:width 1s}
-</style>
-<div id="toast-wrap"></div>
+<!-- ===================== MODUL: Fitur Siswa & Alat Latihan ===================== -->
 <script>
+/* XP/level/lencana, tab Alat Latihan (IMT, stopwatch, tantangan harian, papan XP), kuis dengan umpan balik, cadangan data */
 (function(){
-const $=id=>document.getElementById(id);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const cur=()=>studentsData.find(s=>s.id===currentStudentId);
+const { $, esc, cur } = Util;
 
-/* ---------- 1. Toast & confetti ---------- */
-window.alert=m=>{const t=document.createElement('div');t.className='toast';t.textContent=m;$('toast-wrap').appendChild(t);setTimeout(()=>t.remove(),4500)};
-window.confetti=confetti;function confetti(){for(let i=0;i<45;i++){const c=document.createElement('span');c.className='confetti';c.textContent=['🎉','⭐','🏅','✨'][i%4];c.style.left=Math.random()*100+'vw';c.style.animationDelay=Math.random()*.8+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),3600)}}
 
-/* ---------- 2. Login guru: ditangani modul Firebase (Authentication) ---------- */
-window.authenticateAdmin=function(e){e.preventDefault();alert('Tidak dapat terhubung ke Firebase. Periksa koneksi internet lalu muat ulang halaman.')};
-
-/* ---------- 3. Login siswa: NISN + PIN ---------- */
-const pinOf=s=>s.pin||String(s.nis).slice(-4);
+/* ---------- Kolom PIN di layar awal (login siswa ditangani modul sinkronisasi) ---------- */
 const nisnIn=$('input-nisn'),pinIn=document.createElement('input');
 pinIn.id='input-pin';pinIn.type='password';pinIn.maxLength=8;pinIn.placeholder='PIN';
 pinIn.className=nisnIn.className.replace('flex-1','')+' sm:w-28';
 nisnIn.after(pinIn);
 nisnIn.parentElement.insertAdjacentHTML('afterend','<p class="text-[10px] text-slate-400 mt-1">PIN awal = 4 digit terakhir NISN.</p>');
-window.loginWithNISN=function(){
-  const n=nisnIn.value.trim(),p=pinIn.value.trim();
-  if(!n||!p){alert('Isi NISN dan PIN terlebih dahulu.\n(PIN awal = 4 digit terakhir NISN)');return}
-  const s=studentsData.find(x=>x.nis===n||x.id===n);
-  if(!s||pinOf(s)!==p){alert('NISN atau PIN salah.');return}
-  currentStudentId=s.id;
-  window.currentStudentId = currentStudentId;
-  loadStudentData(s.id);$('screen-welcome').classList.add('hidden');switchStudentTab('dashboard');
-  alert('Selamat datang, '+s.name.split(' ')[0]+'! 👋');
-};
-window.quickLogin=n=>{nisnIn.value=n;pinIn.value=n.slice(-4);loginWithNISN()};
 
 /* ---------- 4. Ekspor / Impor / Data Demo ---------- */
 window.exportData=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(studentsData,null,2)],{type:'application/json'}));a.download='sportfolio-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click()};
@@ -2012,8 +2003,7 @@ function renderExtras(){
   document.querySelectorAll('#student-grades-table tr').forEach(tr=>{const c=tr.children;if(c.length>3&&+c[2].innerText<KKM){const sp=c[3].firstElementChild;sp.innerText='Remedial';sp.className='bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded text-[10px]'}});
   renderBoard();renderDaily();
 }
-const _load=loadStudentData;
-loadStudentData=function(id){_load(id);renderExtras()};
+App.on('studentLoaded', renderExtras);
 
 /* ---------- 6. Tab baru "Alat Latihan" ---------- */
 const tb=document.createElement('button');tb.id='tab-btn-tools';tb.setAttribute('onclick',"switchStudentTab('tools')");
@@ -2048,17 +2038,12 @@ tc.innerHTML=`
 </div>`;
 $('tab-content-tasks').after(tc);
 
-const tabCls=(on,rel)=>'flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition '+(on?'bg-white text-blue-700 shadow-sm':'text-slate-600 hover:text-slate-900')+(rel?' relative':'');
-window.switchStudentTab=function(t){
-  [['dashboard',$('tab-btn-dashboard'),$('tab-content-dashboard')],['tasks',$('tab-btn-tasks'),$('tab-content-tasks')],['tools',tb,tc]].forEach(([k,b,c])=>{
-    b.className=tabCls(k===t,k==='tasks');c.classList.toggle('hidden',k!==t)});
-};
-tb.innerHTML='<i class="fa-solid fa-toolbox mr-1"></i> Alat Latihan';tb.className=tabCls(false);
+tb.innerHTML='<i class="fa-solid fa-toolbox mr-1"></i> Alat Latihan';registerStudentTab('tools','tab-btn-tools','tab-content-tools');tb.className=tabClass(false);
 
 // IMT
 let imtVal='';
 function hitungIMT(){const h=$('imt-h').value/100,w=$('imt-w').value;if(!h||!w)return;const v=w/(h*h);
-  const [k,c]=v<18.5?['Berat badan kurang','text-amber-600']:v<23?['Normal','text-emerald-600']:v<25?['BB lebih','text-orange-500']:v<30?['Obesitas I','text-orange-600']:['Obesitas II','text-red-600'];
+  const [k,c]=imtClass(v);
   imtVal=v.toFixed(1)+' ('+k+')';$('imt-out').innerHTML=`<span class="text-3xl font-extrabold ${c}">${v.toFixed(1)}</span><br><b class="${c}">${k}</b>`;$('imt-save').classList.remove('hidden');
   if(!window._imtLoad){const s=cur();s.height=+$('imt-h').value;s.weight=+$('imt-w').value;s.bmi=imtVal;saveStorageData();$('student-bmi').innerText=imtVal}}
 $('imt-h').oninput=$('imt-w').oninput=hitungIMT;
@@ -2104,43 +2089,22 @@ window.submitStudentQuiz=function(e){
   if(sc>=80)confetti();
 };
 
-/* ---------- 8. Perbaikan kecil ---------- */
-const wo=window.open;
-window.open=function(u,...r){if(typeof u==='string'&&u.startsWith('data:image')){const w=wo.call(window,'');w.document.write('<img src="'+u+'" style="max-width:100%">');return w}return wo.call(window,u,...r)};
-studentsData.forEach(s=>{if(!s.pin)s.pin=String(s.nis).slice(-4)});
-renderExtras();
 })();
 </script>
 
 <script>
-/* ===== UPGRADE v2: rata-rata otomatis, hapus siswa, IMT sinkron, TKJI per bulan ===== */
+/* ===================== MODUL: Perbaikan Admin (hapus siswa, IMT sinkron, TKJI per bulan) ===================== */
 let tempEditTkji = [];
-const _e = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function avgOf(grades) {
-    const g = (grades || []).map(x => +x.score).filter(n => !isNaN(n));
-    return g.length ? Math.round(g.reduce((a, b) => a + b, 0) / g.length * 10) / 10 : 0;
-}
-function avgGrades(st) { return avgOf(st.grades); }
-function syncPraktik() { studentsData.forEach(st => { if (st.grades && st.grades.length) st.scorePraktik = avgGrades(st); }); }
-function imtLabel(h, w) {
-    const v = w / ((h / 100) * (h / 100));
-    return v.toFixed(1) + ' (' + (v < 18.5 ? 'Berat badan kurang' : v < 23 ? 'Normal' : v < 25 ? 'BB lebih' : v < 30 ? 'Obesitas I' : 'Obesitas II') + ')';
-}
-function updatePraktikField() { document.getElementById('edit-score-praktik').value = avgOf(tempEditGrades); }
+const _e = Util.esc;
 (function () {
-    const _rg = renderAdminGradesEditor;
-    renderAdminGradesEditor = function () { _rg(); updatePraktikField(); };
     const gl = document.getElementById('admin-grades-editor-list');
     gl.addEventListener('input', () => setTimeout(updatePraktikField, 0));
     gl.addEventListener('change', () => setTimeout(updatePraktikField, 0));
-    const _rs = renderAdminStudentList;
-    renderAdminStudentList = function () { syncPraktik(); _rs(); };
-    const _ls = loadStudentData;
-    loadStudentData = function (id) { syncPraktik(); saveStorageData(); _ls(id); fillImt(); };
     ['edit-height', 'edit-weight'].forEach(i => document.getElementById(i).addEventListener('input', () => {
         const h = +document.getElementById('edit-height').value, w = +document.getElementById('edit-weight').value;
         if (h > 0 && w > 0) document.getElementById('edit-bmi').value = imtLabel(h, w);
     }));
+    App.on('studentLoaded', fillImt);
 })();
 function fillImt() {
     const st = studentsData.find(x => x.id === currentStudentId), H = document.getElementById('imt-h'), W = document.getElementById('imt-w');
@@ -2185,7 +2149,6 @@ function deleteStudent(id) {
     try { localStorage.removeItem('sf_daily2_' + id); } catch (e) {}
     if (currentStudentId === id) {
         currentStudentId = studentsData[0].id;
-        window.currentStudentId = currentStudentId;
     }
     saveStorageData();
     renderAdminStudentList();
@@ -2193,24 +2156,11 @@ function deleteStudent(id) {
 }
 </script>
 <script>
-/* ===== UPGRADE v3: ingat email guru + peringkat nilai ===== */
+/* ===================== MODUL: Peringkat Nilai ===================== */
 (function () {
-    const $ = id => document.getElementById(id);
-    const E = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const { $, esc: E, avg, cur } = Util;
     const md = r => ['🥇', '🥈', '🥉'][r - 1] || '';
 
-    // --- Ingat email guru
-    const _tg = toggleAdminMode;
-    toggleAdminMode = function () {
-        _tg();
-        if (!$('modal-admin-auth').classList.contains('hidden')) {
-            let saved = '';
-            try { saved = localStorage.getItem('sf_admin_email') || ''; } catch (e) {}
-            $('auth-email').value = saved;
-            $('auth-remember').checked = true;
-            ($('auth-email').value ? $('auth-password') : $('auth-email')).focus();
-        }
-    };
 
     // --- Peringkat
     const fns = {
@@ -2251,8 +2201,7 @@ function deleteStudent(id) {
             tr.appendChild(td);
         });
     }
-    const _l3 = loadStudentData;
-    loadStudentData = function (id) { _l3(id); renderStudentRanks(); };
+    App.on('studentLoaded', renderStudentRanks);
 
     // Guru: kartu peringkat per nilai
     const card = document.createElement('div');
@@ -2282,15 +2231,13 @@ function deleteStudent(id) {
         }).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-400">Belum ada data.</td></tr>';
     }
     $('rank-class').onchange = $('rank-metric').onchange = renderRanking;
-    const _r3 = renderAdminStudentList;
-    renderAdminStudentList = function () { _r3(); renderRanking(); };
+    App.on('adminListRendered', renderRanking);
 })();
 </script>
 <script>
-/* ===== UPGRADE v4: Sumber Belajar ===== */
+/* ===================== MODUL: Sumber Belajar (sampul + link, baca di web) ===================== */
 (function () {
-    const $ = id => document.getElementById(id);
-    const E = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const { $, esc: E, avg, cur } = Util;
     const DEMO = [{ id: 'demo1', title: 'Contoh Buku PDF (hapus bila tidak perlu)', subject: 'Contoh', desc: 'Ganti dengan link PDF/Drive Anda lewat Mode Guru.', url: 'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf', cover: '' }];
     const KEY = 'sf_resources_draft';
     let repoRes = null, res = [], remoteRes = null;
@@ -2308,9 +2255,8 @@ function deleteStudent(id) {
         : `<div class="${cls} bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex flex-col items-center justify-center p-3 text-center"><span class="text-3xl">📘</span><span class="text-[10px] font-bold mt-1">${E(r.title)}</span></div>`;
 
     // ---------- Tab siswa ----------
-    const tabCls = on => 'flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition ' + (on ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900');
     const tbtn = document.createElement('button');
-    tbtn.id = 'tab-btn-library'; tbtn.className = tabCls(false);
+    tbtn.id = 'tab-btn-library'; tbtn.className = tabClass(false);
     tbtn.setAttribute('onclick', "switchStudentTab('library')");
     tbtn.innerHTML = '<i class="fa-solid fa-book-open mr-1"></i> Sumber Belajar';
     $('tab-btn-tools').after(tbtn);
@@ -2321,8 +2267,7 @@ function deleteStudent(id) {
         <input id="lib-search" placeholder="Cari buku / materi…" class="border rounded-xl px-3 py-2 text-xs w-full sm:w-64"></div>
         <div id="lib-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div></div>`;
     $('tab-content-tools').after(lib);
-    const _s = switchStudentTab;
-    switchStudentTab = function (t) { _s(t); const on = t === 'library'; lib.classList.toggle('hidden', !on); tbtn.className = tabCls(on); };
+    registerStudentTab('library', 'tab-btn-library', 'tab-content-library');
 
     function renderLib() {
         const q = ($('lib-search').value || '').toLowerCase();
@@ -2452,7 +2397,7 @@ function deleteStudent(id) {
 })();
 </script>
 <script type="module">
-/* ===== UPGRADE v5: Sinkronisasi realtime Firebase ===== */
+/* ===================== SINKRONISASI: Firebase Realtime Database & Authentication ===================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
 import { getDatabase, ref, onValue, set, get, remove } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
@@ -2474,7 +2419,7 @@ const auth = getAuth(app);
 try { await setPersistence(auth, browserSessionPersistence); } catch (e) {}
 
 const TEACHER_EMAIL = 'heruprananda@gmail.com';
-const $ = id => document.getElementById(id);
+const { $, esc: E, avg, cur } = Util;
 const sk = o => Array.isArray(o) ? o.map(sk) : (o && typeof o === 'object') ? Object.keys(o).sort().reduce((a, k) => (a[k] = sk(o[k]), a), {}) : o;
 const J = o => JSON.stringify(sk(o));
 const clean = o => JSON.parse(JSON.stringify(o));
@@ -2501,9 +2446,8 @@ const cacheStu = m => { try { localStorage.setItem('sf_stu_' + m.id, JSON.string
 function stopSync() { unsubs.forEach(u => u()); unsubs = []; }
 
 // ---------- Kirim perubahan ke server ----------
-const _save = saveStorageData;
 let timer = null;
-saveStorageData = function () { _save(); clearTimeout(timer); timer = setTimeout(push, 400); };
+App.on('dataSaved', () => { clearTimeout(timer); timer = setTimeout(push, 400); });
 function push() {
     if (mode === 'teacher' && synced) {
         studentsData.forEach(s => {
@@ -2584,8 +2528,7 @@ window.loginWithNISN = async function () {
     alert('Selamat datang, ' + me.name.split(' ')[0] + '! 👋');
     if (offline) alert('Mode offline: memakai data terakhir. Perubahan dikirim saat internet tersambung (jangan tutup halaman sebelum itu).');
 };
-const _w = showWelcomeScreen;
-showWelcomeScreen = function () { _w(); if (!isAdminMode) { stopSync(); mode = 'none'; $('input-pin').value = ''; if (window.endJuri) endJuri(); } };
+App.on('welcomeShown', () => { stopSync(); mode = 'none'; $('input-pin').value = ''; });
 
 // ---------- Guru ----------
 window.authenticateAdmin = async function (e) {
@@ -2594,13 +2537,9 @@ window.authenticateAdmin = async function (e) {
     if (em !== TEACHER_EMAIL) { alert('Email atau Password Guru salah! Akses ditolak.'); return; }
     try { await signInWithEmailAndPassword(auth, em, pw); }
     catch (err) { alert(err.code === 'auth/network-request-failed' ? 'Tidak ada koneksi internet.' : 'Email atau password salah (' + (err.code || err.message) + ').'); return; }
-    isAdminMode = true; closeAdminAuthModal();
-    $('screen-welcome').classList.add('hidden');
     if (window.endJuri) endJuri();
-    try { if ($('auth-remember').checked) localStorage.setItem('sf_admin_email', em); else localStorage.removeItem('sf_admin_email'); } catch (x) {}
-    $('current-mode-badge').innerHTML = 'Mode: <strong class="text-yellow-300">Guru / Admin</strong>';
-    $('admin-btn-text').innerText = 'Kembali ke Mode Siswa';
-    $('view-student').classList.add('hidden'); $('view-admin').classList.remove('hidden');
+    rememberAdminEmail(em);
+    enterAdminMode('Guru / Admin');
     startTeacher();
 };
 function startTeacher() {
@@ -2620,39 +2559,12 @@ function startTeacher() {
         if (!changed) return;
         studentsData = list;
         if (!list.some(x => x.id === currentStudentId)) currentStudentId = list[0].id;
-        _save(); renderAdminStudentList();
+        saveStorageData(); renderAdminStudentList();
         if (!$('view-student').classList.contains('hidden')) loadStudentData(currentStudentId);
     }, fail));
 }
-const _t = toggleAdminMode;
-toggleAdminMode = function () {
-    const was = isAdminMode;
-    _t();
-    if (was) { stopSync(); mode = 'none'; synced = false; signOut(auth).catch(() => {}); }
-};
-const _r = resetToDefaultData;
-resetToDefaultData = function () {
-    if (mode === 'teacher') { alert('Reset dinonaktifkan saat terhubung ke server agar data siswa tidak terhapus. Hapus siswa satu per satu bila perlu.'); return; }
-    _r();
-};
+App.on('adminLeft', () => { stopSync(); mode = 'none'; synced = false; signOut(auth).catch(() => {}); });
 
-// Foto tugas dikecilkan agar ringan dikirim ke server
-window.previewSubmissionPhoto = function (input) {
-    const f = input.files && input.files[0]; if (!f) return;
-    const fr = new FileReader();
-    fr.onload = ev => {
-        const im = new Image();
-        im.onload = () => {
-            const sc = Math.min(1, 1000 / Math.max(im.width, im.height)), c = document.createElement('canvas');
-            c.width = Math.round(im.width * sc); c.height = Math.round(im.height * sc);
-            c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
-            uploadedPhotoBase64 = c.toDataURL('image/jpeg', .7);
-            $('photo-preview-img').src = uploadedPhotoBase64; $('photo-preview-wrapper').classList.remove('hidden');
-        };
-        im.src = ev.target.result;
-    };
-    fr.readAsDataURL(f);
-};
 window.SF_GAME = {
     submit: (id, rec) => { if (!badKey(id)) set(ref(db, 'game/scores/' + id), rec).catch(fail); },
     listen: cb => onValue(ref(db, 'game/scores'), sn => cb(sn.val() || {}), e => console.warn(e)),
@@ -2661,13 +2573,11 @@ window.SF_GAME = {
     listenQ: cb => onValue(ref(db, 'game/questions'), sn => cb(sn.val()), e => console.warn(e))
 };
 SF_GAME.listenQ(v => { if (window.SF_BANKUI) SF_BANKUI.remote(v ? (Array.isArray(v) ? v : Object.values(v)) : null); });
-window.SF = { ok: true };
 </script>
 <script>
-/* ===== UPGRADE v6: Game Olahraga "Lari Rintangan" ===== */
+/* ===================== MODUL: Game "Lari Rintangan" (stage, soal, peringkat realtime) ===================== */
 (function () {
-    const $ = id => document.getElementById(id);
-    const E = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const { $, esc: E, avg, cur } = Util;
     const STAGES = 5, LIVES = 3, W = 640, H = 300, GY = 250, PX = 84;
     const DEFAULT_BANK = [
         { q: 'Berapa jumlah pemain bola voli dalam satu tim yang berada di lapangan?', o: ['4 orang', '5 orang', '6 orang', '7 orang'], a: 2 },
@@ -2698,12 +2608,10 @@ window.SF = { ok: true };
     const prep = q => { const ix = shuffle([0, 1, 2, 3]); return { q: q.q, o: ix.map(i => q.o[i]), a: ix.indexOf(q.a) }; };
     const rnd = (a, b) => a + Math.random() * (b - a);
     const ini = n => String(n || '').split(' ').filter(Boolean).map(w => w[0].toUpperCase()).join(' ');
-    const cur = () => studentsData.find(s => s.id === currentStudentId);
 
     // ---------- Tab ----------
-    const tabCls = on => 'flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition ' + (on ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900');
     const tbtn = document.createElement('button');
-    tbtn.id = 'tab-btn-game'; tbtn.className = tabCls(false);
+    tbtn.id = 'tab-btn-game'; tbtn.className = tabClass(false);
     tbtn.setAttribute('onclick', "switchStudentTab('game')");
     tbtn.innerHTML = '<i class="fa-solid fa-gamepad mr-1"></i> Game';
     ($('tab-btn-library') || $('tab-btn-tools')).after(tbtn);
@@ -2732,8 +2640,8 @@ window.SF = { ok: true };
       <p class="text-[10px] text-slate-400 mt-3">Peringkat diperbarui otomatis saat teman sekelas mencetak skor baru.</p>
     </div>`;
     ($('tab-content-library') || $('tab-content-tools')).after(tab);
-    const _s = switchStudentTab;
-    switchStudentTab = function (t) { _s(t); const on = t === 'game'; tab.classList.toggle('hidden', !on); tbtn.className = tabCls(on); if (!on) pauseGame(); else if (!G) showStart(); };
+    registerStudentTab('game', 'tab-btn-game', 'tab-content-game');
+    App.on('tabChanged', t => { if (t !== 'game') pauseGame(); else if (!G) showStart(); });
 
     // ---------- Skor & peringkat ----------
     const LKEY = 'sf_game_scores';
@@ -2762,12 +2670,10 @@ window.SF = { ok: true };
         if (window.SF_GAME) { clearInterval(poll); SF_GAME.listen(d => { if (window.JURI) return; scores = d; cache(); renderBoard(); renderAdminBoard(); }); }
         else if (++tries > 40) clearInterval(poll);
     }, 500);
-    const _l = loadStudentData;
-    loadStudentData = function (id) {
-        _l(id);
+    App.on('studentLoaded', () => {
         if (G && G.owner !== currentStudentId) { halt(); G = null; showStart(); }
         renderBoard();
-    };
+    });
 
     // Kartu peringkat untuk guru
     const ac = document.createElement('div');
@@ -2785,8 +2691,7 @@ window.SF = { ok: true };
     }
     $('ga-class').onchange = renderAdminBoard;
     $('ga-reset').onclick = () => { if (!confirm('Hapus SEMUA skor game di semua kelas?')) return; scores = {}; if (!window.JURI) { cache(); if (window.SF_GAME) SF_GAME.reset(); } renderBoard(); renderAdminBoard(); };
-    const _r = renderAdminStudentList;
-    renderAdminStudentList = function () { _r(); renderAdminBoard(); };
+    App.on('adminListRendered', renderAdminBoard);
 
     // ---------- Mesin game ----------
     const cv = $('g-canvas'), ctx = cv.getContext('2d');
@@ -2921,10 +2826,9 @@ window.SF = { ok: true };
 })();
 </script>
 <script>
-/* ===== UPGRADE v7: privasi & persetujuan, panduan, tentang & atribusi, Mode Juri, impor daftar siswa ===== */
+/* ===================== MODUL: Privasi & persetujuan, Panduan, Tentang & Atribusi, Mode Juri, Impor daftar siswa ===================== */
 (function () {
-    const $ = id => document.getElementById(id);
-    const E = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const { $, esc: E, avg, cur } = Util;
     function modal(id, html, wide) {
         let m = $(id);
         if (!m) { m = document.createElement('div'); m.id = id; m.className = 'hidden fixed inset-0 bg-slate-900/70 z-[9100] flex items-center justify-center p-3'; document.body.appendChild(m); }
@@ -2933,7 +2837,7 @@ window.SF = { ok: true };
         m.onclick = e => { if (e.target === m && id !== 'm-consent') m.classList.add('hidden'); };
         return m;
     }
-    window._modal = modal;
+    window.openModal = modal;
     const closeRow = id => `<div class="text-right pt-2"><button type="button" onclick="document.getElementById('${id}').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 font-semibold text-xs">Tutup</button></div>`;
     const H = t => `<h4 class="font-bold text-slate-900 mt-2">${t}</h4>`;
 
@@ -3050,27 +2954,13 @@ window.SF = { ok: true };
         alert('Mode Juri aktif. Semua data adalah DATA CONTOH dan tidak tersambung ke data siswa asli.');
     };
     window.endJuri = function () { window.JURI = false; document.body.classList.remove('juri'); bar.classList.add('hidden'); };
-    const _tj = toggleAdminMode;
-    toggleAdminMode = function () {
-        if (window.JURI && !isAdminMode) {
-            isAdminMode = true;
-            $('current-mode-badge').innerHTML = 'Mode: <strong class="text-yellow-300">Guru / Admin (Juri)</strong>';
-            $('admin-btn-text').innerText = 'Kembali ke Mode Siswa';
-            $('view-student').classList.add('hidden'); $('view-admin').classList.remove('hidden');
-            renderAdminStudentList(); return;
-        }
-        if (isAdminMode && !window.JURI) { _tj(); showWelcomeScreen(); return; }
-        _tj();
-    };
+    App.on('welcomeShown', () => window.endJuri());
 })();
 </script>
 <script>
-/* ===== UPGRADE v8: statistik & laporan, grafik kelas, survei, editor bank soal, PWA ===== */
+/* ===================== MODUL: Statistik & laporan, Survei, Bank soal, PWA ===================== */
 (function () {
-    const $ = id => document.getElementById(id);
-    const E = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const cur = () => studentsData.find(s => s.id === currentStudentId);
-    const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+    const { $, esc: E, avg, cur } = Util;
     const r1 = v => v == null || isNaN(v) ? '-' : (Math.round(v * 10) / 10).toString().replace('.', ',');
     const QS = ['Aplikasi ini mudah digunakan.', 'Tampilan aplikasi menarik dan jelas.', 'Fitur tugas dan kuis membantu saya belajar PJOK.', 'Memantau perkembangan kebugaran membuat saya lebih semangat berolahraga.', 'Game dan peringkat membuat belajar lebih menyenangkan.', 'Saya ingin terus menggunakan aplikasi ini.'];
 
@@ -3082,7 +2972,7 @@ window.SF = { ok: true };
     window.openSurvey = function () {
         const me = cur(); if (!me) return;
         const ans = me.feedback && me.feedback.a ? me.feedback.a.map(Number) : QS.map(() => 0);
-        const m = _modal('m-survey', `<h3 class="font-extrabold text-base text-slate-900">💬 Penilaian Aplikasi</h3>
+        const m = openModal('m-survey', `<h3 class="font-extrabold text-base text-slate-900">💬 Penilaian Aplikasi</h3>
             <p>Pilih angka 1 (sangat tidak setuju) sampai 5 (sangat setuju).</p>
             ${QS.map((t, i) => `<div class="bg-slate-50 border rounded-xl p-3"><p class="font-semibold text-xs">${i + 1}. ${t}</p><div class="flex gap-1.5 mt-2">${[1, 2, 3, 4, 5].map(n => `<button type="button" data-q="${i}" data-n="${n}" class="sv-b flex-1 py-1.5 rounded-lg border text-xs font-bold bg-white"></button>`).join('')}</div></div>`).join('')}
             <textarea id="sv-c" rows="3" maxlength="300" placeholder="Saran atau komentar (opsional). Jangan menulis data pribadi." class="w-full border rounded-lg p-2 text-xs">${E(me.feedback && me.feedback.c || '')}</textarea>
@@ -3182,8 +3072,7 @@ window.SF = { ok: true };
             (S.comments.length ? `<div class="pt-2"><b>Saran siswa:</b><ul class="list-disc list-inside text-slate-600 mt-1 space-y-0.5">${S.comments.slice(0, 8).map(c => `<li>${E(c)}</li>`).join('')}</ul></div>` : '') : '<p class="text-slate-400">Belum ada siswa yang mengisi survei.</p>';
     }
     let t8 = null;
-    const _r8 = renderAdminStudentList;
-    renderAdminStudentList = function () { _r8(); clearTimeout(t8); t8 = setTimeout(renderStats, 250); };
+    App.on('adminListRendered', () => { clearTimeout(t8); t8 = setTimeout(renderStats, 250); });
     $('st-class').onchange = renderStats;
     if (window.getGameScores) setInterval(() => { if (!$('view-admin').classList.contains('hidden')) renderStats(); }, 20000);
 
@@ -3242,7 +3131,7 @@ window.SF = { ok: true };
     window.SF_BANKUI = { remote: v => { if (!v) return; const a = v.filter(validQ); if (a.length) { SF_BANK.set(a); renderBank(); } } };
     function openBankForm(i) {
         const q = i >= 0 ? SF_BANK.get()[i] : { q: '', o: ['', '', '', ''], a: 0 };
-        const m = _modal('m-bank', `<h3 class="font-extrabold text-base text-slate-900">${i >= 0 ? 'Edit' : 'Tambah'} Soal</h3>
+        const m = openModal('m-bank', `<h3 class="font-extrabold text-base text-slate-900">${i >= 0 ? 'Edit' : 'Tambah'} Soal</h3>
             <div><label class="block font-bold mb-1 text-xs">Pertanyaan</label><textarea id="bk-q" rows="3" class="w-full border rounded-lg p-2 text-xs">${E(q.q)}</textarea></div>
             <div><label class="block font-bold mb-1 text-xs">Pilihan jawaban (pilih yang benar)</label>${q.o.map((o, k) => `<div class="flex items-center gap-2 mb-1.5"><input type="radio" name="bk-a" value="${k}" ${q.a === k ? 'checked' : ''}><input id="bk-o${k}" value="${E(o)}" placeholder="Pilihan ${String.fromCharCode(65 + k)}" class="flex-1 border rounded-lg p-2 text-xs"></div>`).join('')}</div>
             <div class="flex justify-end gap-2"><button type="button" onclick="document.getElementById('m-bank').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-slate-100 font-semibold text-xs">Batal</button><button id="bk-save" type="button" class="px-5 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs">Simpan</button></div>`);
