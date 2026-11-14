@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bahan Ajar PJOK Kelas VII - Bab V Membugarkan Tubuh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            overflow: hidden;
+        }
+        .slide {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+        .slide.active {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pyramid-level {
+            clip-path: polygon(5% 0%, 95% 0%, 100% 100%, 0% 100%);
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-between text-slate-800 select-none">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-900 text-white px-6 py-3 flex justify-between items-center border-b border-slate-800 z-10">
+        <div class="flex items-center gap-3">
+            <span class="bg-emerald-500 text-slate-950 font-extrabold px-2.5 py-1 rounded text-xs uppercase tracking-wider">PJOK Kelas VII</span>
+            <span class="text-sm font-semibold text-slate-300">Bab V: Membugarkan Tubuh (Halaman 128 – 142)</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <button id="btn-export-pptx" onclick="exportToPPTX()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-1.5 rounded-lg text-xs flex items-center gap-2 transition shadow">
+                <i class="fas fa-file-powerpoint"></i> Export .PPTX
+            </button>
+            <span id="slide-counter" class="text-sm font-mono bg-slate-800 px-3 py-1 rounded-full text-emerald-400">1 / 12</span>
+            <button onclick="toggleFullscreen()" class="text-slate-400 hover:text-white transition" title="Layar Penuh">
+                <i class="fas fa-expand"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Slide Viewport -->
+    <main class="flex-1 relative flex items-center justify-center p-4 md:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div id="slide-container" class="w-full max-w-6xl aspect-[16/9] bg-white rounded-2xl shadow-2xl overflow-hidden relative flex flex-col">
+            
+            <!-- SLIDE 1: JUDUL & TUJUAN PEMBELAJARAN (Hal. 128) -->
+            <div class="slide active flex-col justify-between h-full p-10 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 text-white">
+                <div class="flex justify-between items-start">
+                    <span class="bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-sm font-semibold">Kurikulum Merdeka • Buku Siswa Hal. 128</span>
+                    <i class="fas fa-heartbeat text-4xl text-emerald-200 animate-pulse"></i>
+                </div>
+                <div class="my-auto max-w-3xl">
+                    <p class="text-emerald-200 font-bold tracking-widest uppercase mb-2">Bab V • Pendidikan Jasmani, Olahraga, dan Kesehatan</p>
+                    <h1 class="text-5xl md:text-6xl font-extrabold leading-tight mb-6">Membugarkan Tubuh</h1>
+                    <div class="bg-white/15 backdrop-blur-md p-6 rounded-xl border border-white/20">
+                        <h3 class="font-bold text-lg mb-2 flex items-center gap-2"><i class="fas fa-bullseye text-amber-300"></i> Tujuan Pembelajaran (Hal. 128–142):</h3>
+                        <ul class="space-y-1.5 text-sm md:text-base text-emerald-50">
+                            <li>• Memahami pentingnya berpartisipasi dalam aktivitas kebugaran jasmani.</li>
+                            <li>• Menjelaskan pengaruh kesehatan sosial dalam aktivitas kebugaran.</li>
+                            <li>• Menjelaskan dan mempraktikkan tes pengukuran kebugaran terkait kesehatan.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                    <span class="bg-slate-900/40 px-3 py-1 rounded-md">#AktivitasJasmani</span>
+                    <span class="bg-slate-900/40 px-3 py-1 rounded-md">#KesehatanSosial</span>
+                    <span class="bg-slate-900/40 px-3 py-1 rounded-md">#KebugaranJasmani</span>
+                    <span class="bg-slate-900/40 px-3 py-1 rounded-md">#TesKomponenKesehatan</span>
+                </div>
+            </div>
+
+            <!-- SLIDE 2: PERLU BERPARTISIPASI DALAM AKTIVITAS JASMANI (Hal. 129) -->
+            <div class="slide flex-col h-full p-10 bg-slate-50">
+                <div class="border-b-2 border-emerald-500 pb-3 mb-6 flex justify-between items-center">
+                    <h2 class="text-3xl font-extrabold text-slate-800">A. Perlunya Berpartisipasi dalam Aktivitas Jasmani</h2>
+                    <span class="text-xs font-bold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">Hal. 129</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-1 items-center">
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-500">
+                            <h3 class="font-bold text-lg text-emerald-700 mb-1">Apa itu Aktivitas Jasmani?</h3>
+                            <p class="text-slate-600 text-sm leading-relaxed">Kegiatan saat kamu menggunakan otot untuk membuat tubuhmu bergerak. WHO merekomendasikan remaja beraktivitas jasmani <strong>minimal 60 menit per hari</strong>.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500">
+                            <h3 class="font-bold text-lg text-amber-700 mb-1">Prinsip Keseimbangan Energi</h3>
+                            <p class="text-slate-600 text-sm leading-relaxed">Penggunaan kalori melalui aktivitas fisik (Energi Keluar) harus sebanding dengan jumlah kalori dari makanan yang dikonsumsi (Energi Masuk).</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-emerald-600 text-white p-5 rounded-2xl flex flex-col justify-center items-center text-center shadow-md">
+                            <i class="fas fa-dumbbell text-3xl mb-3 text-emerald-200"></i>
+                            <h4 class="font-bold mb-1">Tubuh Kuat</h4>
+                            <p class="text-xs text-emerald-100">Tidak mudah lelah saat belajar dan bermain.</p>
+                        </div>
+                        <div class="bg-teal-600 text-white p-5 rounded-2xl flex flex-col justify-center items-center text-center shadow-md">
+                            <i class="fas fa-lungs text-3xl mb-3 text-teal-200"></i>
+                            <h4 class="font-bold mb-1">Jantung & Paru Sehat</h4>
+                            <p class="text-xs text-teal-100">Sirkulasi darah dan oksigen bekerja optimal.</p>
+                        </div>
+                        <div class="bg-cyan-600 text-white p-5 rounded-2xl flex flex-col justify-center items-center text-center shadow-md">
+                            <i class="fas fa-smile-beam text-3xl mb-3 text-cyan-200"></i>
+                            <h4 class="font-bold mb-1">Lebih Bahagia</h4>
+                            <p class="text-xs text-cyan-100">Mengurangi stres dan menyegarkan pikiran.</p>
+                        </div>
+                        <div class="bg-sky-600 text-white p-5 rounded-2xl flex flex-col justify-center items-center text-center shadow-md">
+                            <i class="fas fa-weight text-3xl mb-3 text-sky-200"></i>
+                            <h4 class="font-bold mb-1">Berat Badan Ideal</h4>
+                            <p class="text-xs text-sky-100">Mencegah risiko obesitas dan penyakit.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 3: PIRAMIDA AKTIVITAS FISIK REMAJA (Hal. 130-133) -->
+            <div class="slide flex-col h-full p-10 bg-slate-50">
+                <div class="border-b-2 border-emerald-500 pb-3 mb-4 flex justify-between items-center">
+                    <h2 class="text-3xl font-extrabold text-slate-800">Piramida Segitiga Aktivitas Meningkatkan Kebugaran</h2>
+                    <span class="text-xs font-bold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">Hal. 130 – 133</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 flex-1 items-center">
+                    <!-- Visual Piramida -->
+                    <div class="md:col-span-7 flex flex-col items-center justify-center space-y-1.5">
+                        <div class="w-40 bg-amber-400 text-slate-900 text-center py-2 px-3 rounded-t-xl font-bold text-xs shadow">
+                            <i class="fas fa-balance-scale"></i> Puncak: Keseimbangan Energi
+                        </div>
+                        <div class="w-56 bg-purple-600 text-white text-center py-2 px-3 font-bold text-xs shadow">
+                            5. Latihan Kelenturan (2-3x/minggu)<br><span class="font-normal text-[10px]">Yoga, peregangan, senam</span>
+                        </div>
+                        <div class="w-72 bg-blue-600 text-white text-center py-2 px-3 font-bold text-xs shadow">
+                            4. Latihan Otot & Kebugaran (Min. 2x/minggu)<br><span class="font-normal text-[10px]">Push-up, sit-up, kalistenik, angkat beban</span>
+                        </div>
+                        <div class="w-88 bg-teal-600 text-white text-center py-2 px-3 font-bold text-xs shadow" style="width: 22rem;">
+                            3. Olahraga Aerobik & Rekreasi (Min. 20 mnt, 3x/mgg)<br><span class="font-normal text-[10px]">Sepak bola, basket, bulu tangkis, mendaki</span>
+                        </div>
+                        <div class="w-96 bg-emerald-600 text-white text-center py-2 px-3 font-bold text-xs shadow" style="width: 26rem;">
+                            2. Aktivitas Aerobik Rutin<br><span class="font-normal text-[10px]">Joging, bersepeda, berenang, senam aerobik</span>
+                        </div>
+                        <div class="w-full max-w-lg bg-green-700 text-white text-center py-2.5 px-4 rounded-b-lg font-bold text-xs shadow">
+                            1. Aktivitas Fisik Sedang (Setiap Hari)<br><span class="font-normal text-[10px]">Berjalan ke sekolah, menyapu, naik turun tangga, berkebun</span>
+                        </div>
+                    </div>
+                    <!-- Peringatan Sedentari -->
+                    <div class="md:col-span-5 bg-rose-50 border-2 border-rose-200 p-6 rounded-2xl space-y-3">
+                        <div class="flex items-center gap-3 text-rose-600">
+                            <i class="fas fa-ban text-3xl"></i>
+                            <h3 class="font-extrabold text-xl">Hindari Perilaku Sedentari!</h3>
+                        </div>
+                        <p class="text-sm text-slate-700 leading-relaxed">
+                            <strong>Perilaku sedentari</strong> adalah kebiasaan kurang bergerak atau terlalu lama diam.
+                        </p>
+                        <ul class="text-sm text-slate-600 space-y-2">
+                            <li class="flex items-center gap-2"><i class="fas fa-gamepad text-rose-500"></i> Bermain gim online / ponsel berlebihan.</li>
+                            <li class="flex items-center gap-2"><i class="fas fa-tv text-rose-500"></i> Menonton TV / <em>screen time</em> terlalu lama.</li>
+                        </ul>
+                        <div class="bg-white p-3 rounded-lg text-xs text-rose-700 font-semibold border border-rose-200">
+                            Dampak: Menurunkan kebugaran dan membuat kurang produktif di sekolah!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 4: KESEHATAN SOSIAL (Hal. 133-134) -->
+            <div class="slide flex-col h-full p-10 bg-slate-50">
+                <div class="border-b-2 border-emerald-500 pb-3 mb-6 flex justify-between items-center">
+                    <h2 class="text-3xl font-extrabold text-slate-800">B. Kesehatan Sosial dalam Aktivitas Fisik</h2>
+                    <span class="text-xs font-bold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">Hal. 133 – 134</span>
+                </div>
+                <p class="text-slate-600 mb-6 text-base"><strong>Kesehatan sosial</strong> adalah kemampuan berhubungan dengan orang lain, bekerja sama, menghargai keunikan teman, dan membangun persahabatan positif saat berolahraga.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 flex-1">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-start gap-4">
+                        <div class="bg-blue-100 text-blue-600 p-3 rounded-lg font-bold text-xl">1</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-lg">Komunikasi Efektif</h4>
+                            <p class="text-sm text-slate-600 mt-1">Melatih komunikasi antarindividu di lapangan untuk mencapai tujuan tim yang sama.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-start gap-4">
+                        <div class="bg-emerald-100 text-emerald-600 p-3 rounded-lg font-bold text-xl">2</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-lg">Negosiasi & Keadilan</h4>
+                            <p class="text-sm text-slate-600 mt-1">Partisipan belajar bernegosiasi membentuk tim yang adil sebelum permainan dimulai.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-start gap-4">
+                        <div class="bg-amber-100 text-amber-600 p-3 rounded-lg font-bold text-xl">3</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-lg">Sportivitas & Respek</h4>
+                            <p class="text-sm text-slate-600 mt-1">Menerima keputusan wasit dengan lapang dada serta menghormati lawan (berjabat tangan usai bertanding).</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-start gap-4">
+                        <div class="bg-purple-100 text-purple-600 p-3 rounded-lg font-bold text-xl">4</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-lg">Ikatan Kebersamaan</h4>
+                            <p class="text-sm text-slate-600 mt-1">Pengalaman menang atau kalah bersama memperkuat solidaritas tanpa memandang perbedaan budaya.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 5: KEBUGARAN JASMANI TERKAIT KESEHATAN (Hal. 134-136) -->
+            <div class="slide flex-col h-full p-10 bg-slate-50">
+                <div class="border-b-2 border-emerald-500 pb-3 mb-4 flex justify-between items-center">
+                    <h2 class="text-3xl font-extrabold text-slate-800">C. 5 Komponen Kebugaran Terkait Kesehatan</h2>
+                    <span class="text-xs font-bold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">Hal. 134 – 136</span>
+                </div>
+                <p class="text-sm text-slate-600 mb-5"><strong>Kebugaran jasmani</strong> adalah kemampuan sistem tubuh bekerja secara efisien bersama-sama agar tetap sehat dan efektif beraktivitas sehari-hari.</p>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 flex-1">
+                    <div class="bg-rose-600 text-white p-4 rounded-2xl flex flex-col justify-between shadow">
+                        <div>
+                            <i class="fas fa-heart text-2xl mb-2 text-rose-200"></i>
+                            <h3 class="font-bold text-base leading-snug mb-2">1. Daya Tahan Kardiorespiratori</h3>
+                            <p class="text-xs text-rose-100">Kemampuan jantung, paru-paru, dan pembuluh darah menyuplai oksigen saat latihan jangka lama (lari, renang).</p>
+                        </div>
+                        <span class="text-[10px] uppercase tracking-wider bg-rose-800/60 px-2 py-1 rounded text-center mt-3">Endurance</span>
+                    </div>
+                    <div class="bg-orange-600 text-white p-4 rounded-2xl flex flex-col justify-between shadow">
+                        <div>
+                            <i class="fas fa-dumbbell text-2xl mb-2 text-orange-200"></i>
+                            <h3 class="font-bold text-base leading-snug mb-2">2. Kekuatan Otot</h3>
+                            <p class="text-xs text-orange-100">Kemampuan otot mengangkat beban berat atau memberikan gaya maksimal (angkat besi, senam).</p>
+                        </div>
+                        <span class="text-[10px] uppercase tracking-wider bg-orange-800/60 px-2 py-1 rounded text-center mt-3">Muscular Strength</span>
+                    </div>
+                    <div class="bg-amber-600 text-white p-4 rounded-2xl flex flex-col justify-between shadow">
+                        <div>
+                            <i class="fas fa-stopwatch text-2xl mb-2 text-amber-200"></i>
+                            <h3 class="font-bold text-base leading-snug mb-2">3. Daya Tahan Otot</h3>
+                            <p class="text-xs text-amber-100">Kemampuan menggunakan otot secara berkelanjutan tanpa lelah dalam waktu lama (push-up berulang).</p>
+                        </div>
+                        <span class="text-[10px] uppercase tracking-wider bg-amber-800/60 px-2 py-1 rounded text-center mt-3">Muscular Endurance</span>
+                    </div>
+                    <div class="bg-emerald-600 text-white p-4 rounded-2xl flex flex-col justify-between shadow">
+                        <div>
+                            <i class="fas fa-child text-2xl mb-2 text-emerald-200"></i>
+                            <h3 class="font-bold text-base leading-snug mb-2">4. Fleksibilitas</h3>
+                            <p class="text-xs text-emerald-100">Kemampuan menggerakkan bagian tubuh dan sendi secara bebas dan lentur (menari, menendang).</p>
+                        </div>
+                        <span class="text-[10px] uppercase tracking-wider bg-emerald-800/60 px-2 py-1 rounded text-center mt-3">Flexibility</span>
+                    </div>
+                    <div class="bg-cyan-600 text-white p-4 rounded-2xl flex flex-col justify-between shadow">
+                        <div>
+                            <i class="fas fa-user-check text-2xl mb-2 text-cyan-200"></i>
+                            <h3 class="font-bold text-base leading-snug mb-2">5. Komposisi Tubuh</h3>
+                            <p class="text-xs text-cyan-100">Perbandingan jaringan tubuh ramping (tulang, otot, organ) dengan lemak tubuh (diukur via BMI / Caliper).</p>
+                        </div>
+                        <span class="text-[10px] uppercase tracking-wider bg-cyan-800/60 px-2 py-1 rounded text-center mt-3">Body Composition</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 6: TES 1 - DAYA TAHAN KARDIORESPIRATORI / BLEEP TEST (Hal. 136-137) -->
+            <div class="slide flex-col h-full p-10 bg-slate-50">
+                <div class="border-b-2 border-rose-500 pb-3 mb-5 flex justify-between items-center">
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">D. Tes 1: Daya Tahan Kardiorespiratori (Bleep Test)</h2>
+                    <span class="text-xs font-bold bg-rose-100 text-rose-800 px-3 py-1 rounded-full">Hal. 136 – 137</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 flex-1 items-center">
+                    <div class="md:col-span-6 space-y-3">
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-rose-600 mb-1"><i class="fas fa-info-circle"></i> Tujuan & Peralatan</h4>
+                            <p class="text-xs text-slate-600">Mengetahui daya tahan aerobik ($VO_2\text{ Max}$). Alat: Lapangan datar <strong>20 meter</strong>, kerucut penanda, dan audio <em>bleep test</em>.</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-slate-800 mb-1"><i class="fas fa-running text-emerald-600"></i> Cara Pelaksanaan</h4>
+                            <ul class="text-xs text-slate-600 space-y-1 list-disc pl-4">
+                                <li>Berlari bolak-balik antar garis berjarak 20 meter mengikuti irama bunyi <em>beep</em>.</li>
+                                <li>Salah satu kaki harus menginjak/melewati garis sebelum atau tepat saat <em>beep</em> berbunyi.</li>
+                                <li>Tes berhenti jika peserta gagal mencapai garis batas sebanyak <strong>2 kali berturut-turut</strong> (toleransi 1x20 meter).</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="md:col-span-6 bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                        <h4 class="font-bold text-center text-slate-800 mb-3 text-sm">Norma Hasil Bleep Test (TKSI Kemdikbud, 2021)</h4>
+                        <table class="w-full text-xs text-center border-collapse">
+                            <thead>
+                                <tr class="bg-rose-600 text-white">
+                                    <th class="p-2 border">Putra</th>
+                                    <th class="p-2 border">Putri</th>
+                                    <th class="p-2 border">Skor</th>
+                                    <th class="p-2 border">Kategori</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-700">
+                                <tr class="bg-emerald-50 font-semibold"><td class="p-2 border">&gt; L7 B7</td><td class="p-2 border">&gt; L4 B5</td><td class="p-2 border">5</td><td class="p-2 border text-emerald-700">Baik Sekali</td></tr>
+                                <tr><td class="p-2 border">L4 B4 – L7 B7</td><td class="p-2 border">L3 B3 – L4 B5</td><td class="p-2 border">4</td><td class="p-2 border">Baik</td></tr>
+                                <tr class="bg-slate-50"><td class="p-2 border">L2 B2 – L4 B3</td><td class="p-2 border">L2 B8 – L3 B2</td><td class="p-2 border">3</td><td class="p-2 border">Sedang</td></tr>
+                                <tr><td class="p-2 border">L1 B2 – L2 B1</td><td class="p-2 border">L1 B2 – L1 B7</td><td class="p-2 border">2</td><td class="p-2 border">Kurang</td></tr>
+                                <tr class="bg-rose-50"><td class="p-2 border">&lt; L1 B2</td><td class="p-2 border">&lt; L1 B2</td><td class="p-2 border">1</td><td class="p-2 border text-rose-700">Kurang Sekali</td></tr>
+                            </tbody>
+                        </table>
+                        <p class="text-[11px] text-slate-500 mt-2 text-center">*Keterangan: L = Level, B = Balikan</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 7: TES 2 - MENGUKUR FLEKSIBILITAS (V-SIT AND REACH) (Hal. 137-138) -->
+            <div class="slide flex-col h-full p-10 bg-slate-50">
+                <div class="border-b-2 border-emerald-500 pb-3 mb-5 flex justify-between items-center">
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">D. Tes 2: Mengukur Fleksibilitas (V-Sit and Reach)</h2>
+                    <span class="text-xs font-bold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">Hal. 137 – 138</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 flex-1 items-center">
+                    <div class="md:col-span-5 space-y-3">
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-emerald-600 mb-1">Tujuan & Alat</h4>
+                            <p class="text-xs text-slate-600">Mengukur kelenturan <strong>punggung bawah dan pinggul</strong>. Alat: Penggaris/meteran, spidol/kapur, lakban.</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-slate-800 mb-1">Langkah Pelaksanaan</h4>
+                            <ol class="text-xs text-slate-600 space-y-1 list-decimal pl-4">
+                                <li>Lepas sepatu, duduk di lantai kaki lurus dibuka selebar <strong>20–30 cm</strong> (tumit di belakang garis batas).</li>
+                                <li>Kedua telapak tangan bertumpuk menghadap bawah di atas garis ukur.</li>
+                                <li>Jangkau ke depan sejauh mungkin dengan lutut tetap lurus, tahan selama <strong>2 detik</strong>.</li>
+                                <li>Lakukan <strong>3 kali kesempatan</strong>, catat hasil terjauh.</li>
+                            </ol>
+                        </div>
+                    </div>
+                    <div class="md:col-span-7 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                        <h4 class="font-bold text-center text-slate-800 mb-2 text-sm">Norma Tes Fleksibilitas (cm) - TKPN Kemenpora, 2021</h4>
+                        <table class="w-full text-[11px] text-center border-collapse">
+                            <thead>
+                                <tr class="bg-emerald-600 text-white">
+                                    <th class="p-1.5 border">Usia</th>
+                                    <th class="p-1.5 border">JK</th>
+                                    <th class="p-1.5 border">Sangat Rendah</th>
+                                    <th class="p-1.5 border">Rendah</th>
+                                    <th class="p-1.5 border">Cukup</th>
+                                    <th class="p-1.5 border">Baik</th>
+                                    <th class="p-1.5 border">Baik Sekali</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-700">
+                                <tr><td rowspan="2" class="p-1.5 border font-bold">13 Thn</td><td class="p-1.5 border font-bold">L</td><td class="p-1.5 border">&lt; -5</td><td class="p-1.5 border">-5 – 2.9</td><td class="p-1.5 border">3 – 4.9</td><td class="p-1.5 border">5 – 10</td><td class="p-1.5 border font-bold text-emerald-700">&gt; 10</td></tr>
+                                <tr class="bg-slate-50"><td class="p-1.5 border font-bold">P</td><td class="p-1.5 border">&lt; 4</td><td class="p-1.5 border">4 – 8.9</td><td class="p-1.5 border">9 – 11.9</td><td class="p-1.5 border">12 – 17</td><td class="p-1.5 border font-bold text-emerald-700">&gt; 17</td></tr>
+                                <tr><td rowspan="2" class="p-1.5 border font-bold">14 Thn</td><td class="p-1.5 border font-bold">L</td><td class="p-1.5 border">&lt; -5</td><td class="p-1.5 border">-5 – 2.9</td><td class="p-1.5 border">3 – 4.9</td><td class="p-1.5 border">5 – 10</td><td class="p-1.5 border font-bold text-emerald-700">&gt; 10</td></tr>
+                                <tr class="bg-slate-50"><td class="p-1.5 border font-bold">P</td><td class="p-1.5 border">&lt; 5</td><td class="p-1.5 border">5 – 9.9</td><td class="p-1.5 border">10 – 12.9</td><td class="p-1.5 border">13 – 18</td><td class="p-1.5 border font-bold text-emerald-700">&gt; 18</td></tr>
+                                <tr><td rowspan="2" class="p-1.5 border font-bold">15 Thn</td><td class="p-1.5 border font-bold">L</td><td class="p-1.5 border">&lt; -3</td><td class="p-1.5 border">-3 – 2.9</td><td class="p-1.5 border">3 – 7.9</td><td class="p-1.5 border">8 – 13</td><td class="p-1.5 border font-bold text-emerald-700">&gt; 13</td></tr>
+                                <tr class="bg-slate-50"><td class="p-1.5 border font-bold">P</td><td class="p-1.5 border">&lt; 5</td><td class="p-1.5 border">5 – 9.9</td><td class="p-1.5 border">10 – 14.9</td><td class="p-1.5 border">15 – 19</td><td class="p-1.5 border font-bold text-emerald-700">&gt; 19</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 8: TES 3 - MENGUKUR KEKUATAN OTOT (SIT-UP 30 DETIK) (Hal. 139-140) -->
+            <div class="slide flex-col h-full p-10 bg-slate-50">
+                <div class="border-b-2 border-orange-500 pb-3 mb-5 flex justify-between items-center">
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">D. Tes 3: Mengukur Kekuatan Otot (Tes Sit-Up 30 Detik)</h2>
+                    <span class="text-xs font-bold bg-orange-100 text-orange-800 px-3 py-1 rounded-full">Hal. 139 – 140</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 flex-1 items-center">
+                    <div class="md:col-span-6 space-y-3">
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-orange-600 mb-1">Tujuan & Peralatan</h4>
+                            <p class="text-xs text-slate-600">Mengukur kekuatan otot melalui gerakan baring duduk berulang selama <strong>30 detik</strong>. Alat: Matras/lantai datar, stopwatch, teman sebagai partner.</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-slate-800 mb-1">Cara Pelaksanaan</h4>
+                            <ul class="text-xs text-slate-600 space-y-1.5 list-disc pl-4">
+                                <li>Lakukan pemanasan terlebih dahulu.</li>
+                                <li>Berbaring telentang di matras, lutut ditekuk, telapak kaki rata di lantai, <strong>tangan menyilang di dada</strong>.</li>
+                                <li>Angkat tubuh hingga posisi <strong>90 derajat</strong> (atau tangan menyentuh paha) lalu kembali berbaring.</li>
+                                <li>Partner menahan kedua pergelangan kaki agar tidak terangkat dan menghitung gerakan yang sah selama 30 detik.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="md:col-span-6 bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                        <h4 class="font-bold text-center text-slate-800 mb-3 text-sm">Norma Hasil Tes Sit-Up 30 Detik (TKSI Kemdikbud, 2021)</h4>
+                        <table class="w-full text-xs text-center border-collapse">
+                            <thead>
+                                <tr class="bg-orange-600 text-white">
+                                    <th class="p-2 border">Putra</th>
+                                    <th class="p-2 border">Putri</th>
+                                    <th class="p-2 border">Skor</th>
+                                    <th class="p-2 border">Kategori</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-700">
+                                <tr class="bg-emerald-50 font-semibold"><td class="p-2 border">&ge; 30</td><td class="p-2 border">&ge; 23</td><td class="p-2 border">5</td><td class="p-2 border text-emerald-700">Baik Sekali</td></tr>
+                                <tr><td class="p-2 border">21 – 29</td><td class="p-2 border">18 – 23</td><td class="p-2 border">4</td><td class="p-2 border">Baik</td></tr>
+                                <tr class="bg-slate-50"><td class="p-2 border">18 – 20</td><td class="p-2 border">12 – 17</td><td class="p-2 border">3</td><td class="p-2 border">Sedang</td></tr>
+                                <tr><td class="p-2 border">9 – 17</td><td class="p-2 border">6 – 12</td><td class="p-2 border">2</td><td class="p-2 border">Kurang</td></tr>
+                                <tr class="bg-rose-50"><td class="p-2 border">&le; 8</td><td class="p-2 border">&le; 5</td><td class="p-2 border">1</td><td class="p-2 border text-rose-700">Kurang Sekali</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 9: TES 4 - DAYA LEDAK OTOT TUNGKAI (STANDING BROAD JUMP) (Hal. 140-141) -->
+            <div class="slide flex-col h-full p-10 bg-slate-50">
+                <div class="border-b-2 border-blue-500 pb-3 mb-5 flex justify-between items-center">
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">D. Tes 4: Daya Ledak Otot Tungkai (Standing Broad Jump)</h2>
+                    <span class="text-xs font-bold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">Hal. 140 – 141</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 flex-1 items-center">
+                    <div class="md:col-span-6 space-y-3">
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-blue-600 mb-1">Konsep & Peralatan</h4>
+                            <p class="text-xs text-slate-600">Tes loncat ke depan <strong>tanpa awalan</strong> untuk mengukur daya ledak otot tungkai. Alat: Matras/lantai datar, meteran, penanda.</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-slate-800 mb-1">Cara Pelaksanaan</h4>
+                            <ul class="text-xs text-slate-600 space-y-1.5 list-disc pl-4">
+                                <li>Berdiri di belakang garis batas, kaki sejajar, lutut ditekuk, tangan di samping badan.</li>
+                                <li>Ayunkan tangan dan loncat sejauh mungkin ke depan, mendarat dengan <strong>kedua kaki bersamaan</strong>.</li>
+                                <li>Diukur dari garis start hingga bekas pendaratan bagian tubuh terdekat dengan garis start (dalam <strong>cm</strong>).</li>
+                                <li>Dilakukan <strong>3 kali loncatan</strong>, diambil nilai terjauh.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="md:col-span-6 bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                        <h4 class="font-bold text-center text-slate-800 mb-3 text-sm">Norma Hasil Daya Ledak Tungkai (cm) - TKSI 2021</h4>
+                        <table class="w-full text-xs text-center border-collapse">
+                            <thead>
+                                <tr class="bg-blue-600 text-white">
+                                    <th class="p-2 border">Putra</th>
+                                    <th class="p-2 border">Putri</th>
+                                    <th class="p-2 border">Skor</th>
+                                    <th class="p-2 border">Kategori</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-700">
+                                <tr class="bg-emerald-50 font-semibold"><td class="p-2 border">&ge; 224</td><td class="p-2 border">&ge; 178</td><td class="p-2 border">5</td><td class="p-2 border text-emerald-700">Baik Sekali</td></tr>
+                                <tr><td class="p-2 border">195 – 223</td><td class="p-2 border">153 – 177</td><td class="p-2 border">4</td><td class="p-2 border">Baik</td></tr>
+                                <tr class="bg-slate-50"><td class="p-2 border">165 – 194</td><td class="p-2 border">129 – 152</td><td class="p-2 border">3</td><td class="p-2 border">Sedang</td></tr>
+                                <tr><td class="p-2 border">136 – 164</td><td class="p-2 border">104 – 128</td><td class="p-2 border">2</td><td class="p-2 border">Kurang</td></tr>
+                                <tr class="bg-rose-50"><td class="p-2 border">&le; 135</td><td class="p-2 border">&le; 103</td><td class="p-2 border">1</td><td class="p-2 border text-rose-700">Kurang Sekali</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 10: TES 5 - INDEKS MASSA TUBUH (IMT / BMI) (Hal. 141) -->
+            <div class="slide flex-col h-full p-10 bg-slate-50">
+                <div class="border-b-2 border-cyan-500 pb-3 mb-5 flex justify-between items-center">
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">D. Tes 5: Mengukur Indeks Massa Tubuh (IMT / BMI)</h2>
+                    <span class="text-xs font-bold bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full">Hal. 141</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-1 items-center">
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-cyan-700 mb-2">Prosedur Pengukuran</h4>
+                            <p class="text-sm text-slate-600 mb-3">Peserta didik melepas aksesori (sepatu, jam tangan, gelang) lalu diukur <strong>berat badan (kg)</strong> dan <strong>tinggi badan (m)</strong> dalam posisi rileks.</p>
+                            <div class="bg-cyan-50 border border-cyan-200 p-4 rounded-xl text-center">
+                                <p class="text-xs font-bold text-cyan-800 uppercase mb-1">Rumus Body Mass Index (BMI)</p>
+                                <div class="text-lg font-extrabold text-slate-800">
+                                    $$\text{BMI} = \frac{\text{Berat Badan (kg)}}{(\text{Tinggi Badan (m)})^2}$$
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                        <h4 class="font-bold text-slate-800 text-lg mb-2">Norma & Kategori Skor IMT</h4>
+                        <div class="flex justify-between items-center p-3 rounded-lg bg-sky-50 border-l-4 border-sky-500">
+                            <span class="font-bold text-sky-900">Di bawah 18,5</span>
+                            <span class="text-sm font-semibold text-sky-700">Berat Badan Kurang</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 rounded-lg bg-emerald-50 border-l-4 border-emerald-500">
+                            <span class="font-bold text-emerald-900">18,5 – 22,9</span>
+                            <span class="text-sm font-semibold text-emerald-700">Berat Badan Normal (Ideal)</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 rounded-lg bg-amber-50 border-l-4 border-amber-500">
+                            <span class="font-bold text-amber-900">23 – 29,9</span>
+                            <span class="text-sm font-semibold text-amber-700">Berat Badan Berlebih</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 rounded-lg bg-rose-50 border-l-4 border-rose-500">
+                            <span class="font-bold text-rose-900">30 ke atas</span>
+                            <span class="text-sm font-semibold text-rose-700">Obesitas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 11: AKTIVITAS 5.1 & INTENSITAS LATIHAN (Hal. 142) -->
+            <div class="slide flex-col h-full p-10 bg-slate-50">
+                <div class="border-b-2 border-emerald-500 pb-3 mb-5 flex justify-between items-center">
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">Aktivitas 5.1 & Pengantar Intensitas Latihan</h2>
+                    <span class="text-xs font-bold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">Hal. 142</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 items-center">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                        <div class="flex items-center gap-2 text-emerald-700 font-extrabold text-lg">
+                            <i class="fas fa-clipboard-check text-2xl"></i>
+                            <h3>Aktivitas 5.1: Peer Assessment</h3>
+                        </div>
+                        <p class="text-xs text-slate-600">Lakukan pengukuran 5 komponen kebugaran secara berpasangan dengan teman sekelas di bawah bimbingan guru PJOK:</p>
+                        <ul class="text-xs text-slate-700 space-y-1.5 bg-slate-50 p-3 rounded-lg border">
+                            <li>1. Daya Tahan Kardiorespiratori (<em>Bleep Test</em>)</li>
+                            <li>2. Fleksibilitas (<em>V-Sit and Reach</em>)</li>
+                            <li>3. Kekuatan Otot (<em>Sit-Up 30 Detik</em>)</li>
+                            <li>4. Daya Ledak Tungkai (<em>Standing Broad Jump</em>)</li>
+                            <li>5. Indeks Massa Tubuh (<em>BMI</em>)</li>
+                        </ul>
+                        <p class="text-xs text-emerald-700 font-semibold">Bandingkan data dengan tabel norma dan tuliskan kategori hasilnya!</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 text-white p-6 rounded-2xl shadow-lg space-y-4">
+                        <div class="flex items-center gap-2 text-amber-400 font-extrabold text-lg">
+                            <i class="fas fa-tachometer-alt text-2xl"></i>
+                            <h3>E. Intensitas Latihan Kebugaran</h3>
+                        </div>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            <strong>Intensitas latihan kebugaran jasmani</strong> merujuk pada seberapa keras kamu melakukan latihan fisik.
+                        </p>
+                        <div class="bg-white/10 p-4 rounded-xl space-y-2 text-xs">
+                            <p><i class="fas fa-heartbeat text-rose-400 mr-2"></i>Diukur berdasarkan <strong>persentase denyut jantung maksimum</strong> atau tingkat usaha yang dirasakan.</p>
+                            <p><i class="fas fa-exclamation-triangle text-amber-400 mr-2"></i>Intensitas lebih tinggi meningkatkan kebugaran, namun <strong>terlalu tinggi</strong> berisiko menyebabkan cedera atau kelelahan.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 12: KESIMPULAN & PENUTUP -->
+            <div class="slide flex-col justify-between h-full p-10 bg-gradient-to-br from-slate-900 via-teal-900 to-emerald-900 text-white text-center">
+                <div class="my-auto max-w-3xl mx-auto space-y-6">
+                    <div class="inline-block bg-emerald-500/20 border border-emerald-400/30 px-4 py-1.5 rounded-full text-emerald-300 text-sm font-bold">
+                        Rangkuman Materi Hal. 128 – 142
+                    </div>
+                    <h2 class="text-4xl md:text-5xl font-extrabold">Tubuh Bugar, Prestasi Meningkat!</h2>
+                    <p class="text-slate-200 text-base md:text-lg leading-relaxed">
+                        Lakukan aktivitas fisik minimal <strong>60 menit setiap hari</strong> sesuai Piramida Aktivitas Jasmani, hindari perilaku sedentari, jaga kesehatan sosial saat berolahraga, dan pantau kebugaranmu secara berkala melalui 5 tes komponen kesehatan.
+                    </p>
+                    <div class="pt-4">
+                        <button onclick="goToSlide(0)" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-6 py-3 rounded-xl transition shadow-lg inline-flex items-center gap-2">
+                            <i class="fas fa-redo"></i> Ulangi Presentasi dari Awal
+                        </button>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-400">Sumber: Buku Siswa PJOK SMP/MTs Kelas VII (Kemendikbudristek, 2024)</p>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Bottom Controls -->
+    <footer class="bg-slate-900 text-white px-6 py-3 flex justify-between items-center border-t border-slate-800 z-10">
+        <div class="text-xs text-slate-400 hidden sm:block">
+            Gunakan tombol panah <kbd class="bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">←</kbd> <kbd class="bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">→</kbd> pada keyboard untuk berpindah slide
+        </div>
+        <div class="flex items-center gap-3 mx-auto sm:mx-0">
+            <button id="prev-btn" onclick="changeSlide(-1)" class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition">
+                <i class="fas fa-chevron-left"></i> Sebelumnya
+            </button>
+            <button id="next-btn" onclick="changeSlide(1)" class="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition">
+                Selanjutnya <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const counter = document.getElementById('slide-counter');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.toggle('active', index === currentSlide);
+            });
+            counter.textContent = `${currentSlide + 1} / ${slides.length}`;
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === slides.length - 1;
+        }
+
+        function changeSlide(dir) {
+            const next = currentSlide + dir;
+            if (next >= 0 && next < slides.length) {
+                currentSlide = next;
+                updateSlide();
+            }
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateSlide();
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') changeSlide(1);
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+        });
+
+        async function exportToPPTX() {
+            const btn = document.getElementById('btn-export-pptx');
+            const originalHTML = btn.innerHTML;
+            const savedSlideIndex = currentSlide;
+            btn.disabled = true;
+
+            try {
+                let pptx = new PptxGenJS();
+                pptx.layout = 'LAYOUT_16x9';
+                pptx.author = 'Bahan Ajar PJOK Kelas VII';
+                pptx.title = 'Bab V Membugarkan Tubuh (Hal. 128-142)';
+
+                const container = document.getElementById('slide-container');
+
+                for (let i = 0; i < slides.length; i++) {
+                    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Merender Slide ${i + 1}/${slides.length}...`;
+                    
+                    // Tampilkan slide ke-i sementara agar dirender sempurna oleh browser
+                    slides.forEach((s, idx) => s.classList.toggle('active', idx === i));
+                    await new Promise(resolve => setTimeout(resolve, 120));
+
+                    const canvas = await html2canvas(container, {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false
+                    });
+
+                    const imgData = canvas.toDataURL('image/png');
+                    let pptSlide = pptx.addSlide();
+                    pptSlide.addImage({
+                        data: imgData,
+                        x: 0,
+                        y: 0,
+                        w: '100%',
+                        h: '100%'
+                    });
+                }
+
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan .PPTX...';
+                await pptx.writeFile({ fileName: 'Materi_PJOK_Kelas7_Bab5_Hal128-142.pptx' });
+            } catch (err) {
+                console.error('Gagal mengekspor PPTX:', err);
+            } finally {
+                // Kembalikan ke posisi slide semula
+                currentSlide = savedSlideIndex;
+                updateSlide();
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        updateSlide();
+    </script>
+</body>
+</html>
