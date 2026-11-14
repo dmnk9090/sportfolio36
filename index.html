@@ -110,19 +110,19 @@
 
     <!-- NAVBAR HEADER -->
     <header class="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white shadow-lg sticky top-0 z-30 no-print">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[4rem] py-2 flex flex-wrap items-center justify-between gap-2">
             <!-- Brand Logo -->
             <div class="flex items-center gap-3 cursor-pointer" onclick="showWelcomeScreen()">
                 <div class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center text-yellow-400 font-bold text-xl shadow-inner">
                     <i class="fa-solid fa-heart-pulse"></i>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-lg tracking-tight leading-none text-white">SportFolio SMPN 36 Pekanbaru</h1>
+                    <h1 class="font-extrabold text-sm sm:text-lg tracking-tight leading-tight text-white">SportFolio SMPN 36 Pekanbaru</h1>
                 </div>
             </div>
 
             <!-- Mode Switcher & Actions -->
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center justify-end gap-2">
                                 <button onclick="showWelcomeScreen()" class="text-xs bg-white/10 hover:bg-white/20 text-white font-semibold px-3 py-1.5 rounded-xl border border-white/20 transition flex items-center gap-1.5">
                     <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">Keluar</span>
                 </button>
@@ -366,12 +366,9 @@
                     <p class="text-xs text-slate-400">Update nilai per materi, presensi tanggal detail, tugas baru, dan umpan balik siswa.</p>
                 </div>
 
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center justify-center md:justify-end gap-2 w-full md:w-auto">
                     <button onclick="openBroadcastTaskModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-2">
                         <i class="fa-solid fa-bullhorn"></i> Buat Tugas Massal (Per Kelas)
-                    </button>
-                    <button onclick="openAddStudentModal()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-2">
-                        <i class="fa-solid fa-user-plus"></i> Tambah Siswa Baru
                     </button>
                 </div>
             </div>
@@ -388,7 +385,7 @@
                         <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold border-b border-slate-200">
                             <tr>
                                 <th class="p-3">NISN</th>
-                                <th class="p-3">Nama Lengkap</th>
+                                <th class="p-3 cursor-pointer select-none hover:text-blue-600" onclick="toggleNameSort()" title="Klik untuk mengurutkan menurut abjad">Nama Lengkap <span id="name-sort-ico" class="text-blue-500">⇅</span></th>
                                 <th class="p-3">Kelas</th>
                                 <th class="p-3">Nilai Praktik</th>
                                 <th class="p-3">Kebugaran</th>
@@ -691,6 +688,8 @@
                             <input type="number" id="edit-score-praktik" step="0.1" readonly class="w-full border border-slate-300 bg-slate-100 rounded-lg p-2 font-bold text-indigo-700 cursor-not-allowed focus:outline-none">
                         </div>
                         <div>
+                            <label class="block font-bold text-slate-700 mb-1">Skor Kebugaran (0-100)</label>
+                            <input type="number" id="edit-fitness-score" min="0" max="100" step="1" placeholder="Contoh: 85" class="w-full border border-slate-300 rounded-lg p-2 mb-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                             <label class="block font-bold text-slate-700 mb-1">Status Kebugaran</label>
                             <select id="edit-fitness-status" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <option value="Belum dinilai">Belum dinilai</option>
@@ -723,6 +722,14 @@
                     </div>
 
                     <div>
+                        <label class="block font-bold text-slate-700 mb-1">Jenis Kelamin</label>
+                        <select id="edit-gender" class="w-full sm:w-48 border border-slate-300 rounded-lg p-2 mb-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="">Belum diisi</option>
+                            <option value="L">Laki-laki</option>
+                            <option value="P">Perempuan</option>
+                        </select>
+                        <label class="block font-bold text-slate-700 mb-1">Rekomendasi Latihan Mandiri <span class="text-[10px] font-semibold text-slate-400">(satu rekomendasi per baris; tampil di rapor siswa)</span></label>
+                        <textarea id="edit-recs" rows="3" class="w-full border border-slate-300 rounded-lg p-2 mb-3 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Contoh:&#10;Push-up 3x15 setiap pagi.&#10;Peregangan statis sebelum dan sesudah latihan."></textarea>
                         <label class="block font-bold text-slate-700 mb-1">Catatan Evaluasi Guru / Feedback Gerak</label>
                         <textarea id="edit-notes" rows="2" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Tuliskan umpan balik khusus teknik gerakan murid..."></textarea>
                     </div>
@@ -1108,6 +1115,7 @@ function updatePraktikField() { document.getElementById('edit-score-praktik').va
             Util.$('current-mode-badge').innerHTML = 'Mode: <strong class="text-yellow-300">' + label + '</strong>';
             Util.$('admin-btn-text').innerText = 'Kembali ke Mode Siswa';
             Util.$('view-student').classList.add('hidden');
+            Util.$('banner-juri').classList.add('hidden');
             Util.$('view-admin').classList.remove('hidden');
             renderAdminStudentList();
             App.emit('adminEntered');
@@ -1118,6 +1126,7 @@ function updatePraktikField() { document.getElementById('edit-score-praktik').va
             Util.$('current-mode-badge').innerHTML = 'Mode: <strong class="text-yellow-300">Siswa</strong>';
             Util.$('admin-btn-text').innerText = 'Mode Guru / Admin';
             Util.$('view-admin').classList.add('hidden');
+            Util.$('banner-juri').classList.remove('hidden');
             Util.$('view-student').classList.remove('hidden');
             App.emit('adminLeft');
             if (window.JURI) loadStudentData(currentStudentId); else showWelcomeScreen();
@@ -1294,6 +1303,9 @@ function updatePraktikField() { document.getElementById('edit-score-praktik').va
             document.getElementById('edit-fitness-status').value = student.fitnessStatus;
             document.getElementById('edit-bmi').value = student.bmi;
             document.getElementById('edit-notes').value = student.notes;
+            document.getElementById('edit-fitness-score').value = isNaN(parseFloat(student.fitnessScore)) ? '' : parseFloat(student.fitnessScore);
+            document.getElementById('edit-gender').value = student.gender || '';
+            document.getElementById('edit-recs').value = (student.recommendations || []).join('\n');
 
             document.getElementById('edit-height').value = student.height || '';
             document.getElementById('edit-weight').value = student.weight || '';
@@ -1634,7 +1646,7 @@ function updatePraktikField() { document.getElementById('edit-score-praktik').va
             document.getElementById('student-name').innerText = student.name;
             document.getElementById('student-nis').innerText = student.nis;
             document.getElementById('student-class').innerText = student.class;
-            document.getElementById('student-fitness-score').innerText = `${student.fitnessStatus} (${student.fitnessScore})`;
+            document.getElementById('student-fitness-score').innerText = (isNaN(parseFloat(student.fitnessScore)) ? student.fitnessStatus : `${student.fitnessStatus} (${student.fitnessScore})`);
             document.getElementById('student-attendance').innerText = student.totalClasses ? `${Math.round((student.attendance/student.totalClasses)*100)}% (${student.attendance}/${student.totalClasses})` : 'Belum ada data';
             document.getElementById('student-score-praktik').innerText = student.scorePraktik;
             document.getElementById('student-bmi').innerText = student.bmi;
@@ -1838,12 +1850,22 @@ function updatePraktikField() { document.getElementById('edit-score-praktik').va
         }
 
         // ADMIN MANAGEMENT LOGIC
+        let nameSortDir = 0; // 0 = urutan asli, 1 = A-Z, -1 = Z-A
+        function toggleNameSort() {
+            nameSortDir = nameSortDir === 1 ? -1 : 1;
+            renderAdminStudentList();
+        }
         function renderAdminStudentList() {
             syncPraktik();
             const list = document.getElementById('admin-student-list');
             list.innerHTML = '';
+            const ico = document.getElementById('name-sort-ico');
+            if (ico) ico.textContent = nameSortDir === 1 ? '▲ A-Z' : nameSortDir === -1 ? '▼ Z-A' : '⇅';
+            const rows = nameSortDir
+                ? studentsData.slice().sort((a, b) => nameSortDir * String(a.name || '').localeCompare(String(b.name || ''), 'id', { sensitivity: 'base' }))
+                : studentsData;
 
-            studentsData.forEach(s => {
+            rows.forEach(s => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="p-3 font-mono font-bold text-slate-700">${s.nis}</td>
@@ -1915,6 +1937,10 @@ function updatePraktikField() { document.getElementById('edit-score-praktik').va
             student.fitnessStatus = document.getElementById('edit-fitness-status').value;
             student.bmi = document.getElementById('edit-bmi').value;
             student.notes = document.getElementById('edit-notes').value;
+            const fsv = document.getElementById('edit-fitness-score').value.trim();
+            student.fitnessScore = fsv === '' ? '-' : String(fsv);
+            student.gender = document.getElementById('edit-gender').value;
+            student.recommendations = document.getElementById('edit-recs').value.split('\n').map(x => x.trim()).filter(Boolean);
 
 
             student.grades = tempEditGrades;
@@ -2440,7 +2466,7 @@ function norm(s) {
 }
 const ini = n => String(n || '').split(' ').filter(Boolean).map(w => w[0].toUpperCase()).join(' ');
 const summ = s => ({ n: ini(s.name), c: s.class, p: +s.scorePraktik || 0, f: parseFloat(s.fitnessScore) || 0, a: s.attendance || 0, t: s.totalClasses || 0, x: xpOf(s), g: (s.grades || []).map(g => ({ t: String(g.topic), s: +g.score || 0 })) });
-const stub = (id, v) => ({ id, nis: id, name: v.n, class: v.c, scorePraktik: v.p, fitnessScore: String(v.f), attendance: v.a, totalClasses: v.t, _xp: v.x,
+const stub = (id, v) => ({ id, nis: id, name: v.n, class: v.c, scorePraktik: v.p, fitnessScore: v.f > 0 ? String(v.f) : '-', attendance: v.a, totalClasses: v.t, _xp: v.x,
     grades: Object.values(v.g || {}).map(x => ({ topic: x.t, score: x.s, category: '', status: '' })), tasks: [], attendanceLog: [], recommendations: [], badges: [], gender: 'L', fitnessStatus: '', notes: '', bmi: '', tkjiData: null });
 const cacheStu = m => { try { localStorage.setItem('sf_stu_' + m.id, JSON.stringify(m)); } catch (e) {} };
 function stopSync() { unsubs.forEach(u => u()); unsubs = []; }
@@ -2548,7 +2574,7 @@ function startTeacher() {
     unsubs.push(onValue(ref(db, 'students'), snap => {
         const v = snap.val();
         if (!v) {
-            if (!synced) { synced = true; if (studentsData.length) push(); else alert('Belum ada data siswa. Tambahkan lewat "Tambah Siswa Baru" atau "Impor Daftar".'); }
+            if (!synced) { synced = true; if (studentsData.length) push(); else alert('Belum ada data siswa. Tambahkan lewat "Impor Daftar", lalu lengkapi detailnya di "Edit Data & Asesmen".'); }
             return;
         }
         const list = Object.entries(v).map(([id, r]) => { const x = norm(r); x.id = x.id || id; return x; });
@@ -2649,7 +2675,7 @@ SF_GAME.listenQ(v => { if (window.SF_BANKUI) SF_BANKUI.remote(v ? (Array.isArray
     window.getGameScores = () => scores;
     try { scores = JSON.parse(localStorage.getItem(LKEY) || '{}') || {}; } catch (e) {}
     const cache = () => { try { localStorage.setItem(LKEY, JSON.stringify(scores)); } catch (e) {} };
-    const sorted = cls => Object.entries(scores).map(([id, r]) => ({ id, ...r })).filter(r => !cls || r.c === cls).sort((a, b) => b.s - a.s || a.t - b.t);
+    const sorted = cls => Object.entries(scores).map(([id, r]) => ({ id, ...r })).filter(r => !String(r.id).endsWith('_b')).filter(r => !cls || r.c === cls).sort((a, b) => b.s - a.s || a.t - b.t);
     const md = i => ['🥇', '🥈', '🥉'][i] || (i + 1);
     function renderBoard() {
         const m = cur(); if (!m) return;
@@ -2717,6 +2743,7 @@ SF_GAME.listenQ(v => { if (window.SF_BANKUI) SF_BANKUI.remote(v ? (Array.isArray
     }
     function pauseGame() { if (running && G && !quizOpen) { halt(); overlay({ icon: '⏸️', text: 'Dijeda' }, 'Permainan dijeda.', 'Lanjut', () => { $('g-overlay').classList.add('hidden'); resume(); }); } else halt(); }
     document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
+    window.SF_RUN = { pause: pauseGame };
     function resume() { if (running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); }
     function halt() { running = false; cancelAnimationFrame(raf); }
     function loop(t) {
@@ -2873,7 +2900,7 @@ SF_GAME.listenQ(v => { if (window.SF_BANKUI) SF_BANKUI.remote(v ? (Array.isArray
     // ---------- Panduan penggunaan ----------
     const GUIDE = {
         siswa: ['Masuk dengan NISN dan PIN (PIN awal = 4 digit terakhir NISN). Saat pertama masuk, baca dan setujui pemberitahuan privasi.', '<b>Rapor &amp; Kebugaran</b>: lihat profil, nilai per materi beserta peringkat kelas, grafik TKJI per bulan, lencana, catatan guru, dan rekomendasi latihan. Klik "Lihat Detail Presensi" untuk riwayat kehadiran.', '<b>Tugas Terbaru</b>: kerjakan tes soal langsung di web atau kirim tugas berupa tautan/foto. Nilai kuis otomatis masuk ke rapor.', '<b>Alat Latihan</b>: kalkulator IMT (tersimpan otomatis), stopwatch, tantangan harian push-up, sit-up, dan flexibility dengan hitungan hari beruntun, serta papan peringkat XP kelas.', '<b>Sumber Belajar</b>: klik sampul buku untuk membaca. Jika tidak tampil, pilih "Buka di tab baru".', '<b>Game</b>: lompati rintangan (Spasi atau tombol LOMPAT), selesaikan 5 stage, dan jawab soal di tiap pergantian stage. Skor masuk peringkat kelas secara realtime.', '<b>Beri Penilaian</b>: di bagian bawah halaman Rapor, isi survei singkat 6 pertanyaan agar aplikasi bisa diperbaiki.', '<b>Pasang di HP</b>: di Chrome Android pilih menu ⋮ → "Pasang aplikasi" (atau tombol "Pasang aplikasi di HP" di layar awal). Di iPhone (Safari) pilih Bagikan → "Tambah ke Layar Utama". Aplikasi bisa dibuka tanpa internet bagi siswa yang pernah masuk di HP itu.', 'Selesai? Tekan "Keluar" agar akunmu tidak terbuka di perangkat bersama.'],
-        guru: ['Klik "Mode Guru / Admin", lalu masuk dengan email dan password guru.', 'Tambahkan siswa lewat "Tambah Siswa Baru" atau "Impor Daftar" (tempel kolom NISN dan Nama dari Excel/Spreadsheet).', '"Edit Data &amp; Asesmen": Profil &amp; TKJI (tinggi, berat, skor tiap bulan), Nilai Per Materi (rata-rata praktik dihitung otomatis), Presensi per tanggal, dan Tugas.', '"Buat Tugas Massal" mengirim tugas atau kuis ke semua siswa satu kelas.', 'Kelola Sumber Belajar dan lihat Peringkat Nilai serta Peringkat Game per kelas. Perubahan tampil di semua perangkat secara realtime.', 'Tombol "Hapus" pada daftar murid menghapus siswa beserta seluruh datanya dari server (untuk permintaan penghapusan data).', '<b>Statistik Pemakaian &amp; Laporan</b>: lihat grafik perkembangan kelas, sebaran kebugaran, hasil survei siswa; unduh CSV atau cetak laporan PDF (identitas siswa disamarkan secara bawaan).', '<b>Bank Soal Game</b>: tambah, ubah, atau hapus soal yang muncul di game (minimal 5 soal).', 'Gunakan "Ekspor" untuk cadangan data. Keluar dengan "Kembali ke Mode Siswa".'],
+        guru: ['Klik "Mode Guru / Admin", lalu masuk dengan email dan password guru.', 'Tambahkan siswa lewat "Impor Daftar" (tempel kolom NISN dan Nama dari Excel/Spreadsheet), lalu lengkapi data detail (jenis kelamin, skor kebugaran, rekomendasi latihan) di "Edit Data &amp; Asesmen".', '"Nilai Materi Massal": buat satu materi untuk seluruh kelas, lalu isi nilai tiap murid dalam satu tabel.', '"Edit Data &amp; Asesmen": Profil &amp; TKJI (tinggi, berat, skor tiap bulan), Nilai Per Materi (rata-rata praktik dihitung otomatis), Presensi per tanggal, dan Tugas.', '"Buat Tugas Massal" mengirim tugas atau kuis ke semua siswa satu kelas.', 'Kelola Sumber Belajar dan lihat Peringkat Nilai serta Peringkat Game per kelas. Perubahan tampil di semua perangkat secara realtime.', 'Tombol "Hapus" pada daftar murid menghapus siswa beserta seluruh datanya dari server (untuk permintaan penghapusan data).', '<b>Statistik Pemakaian &amp; Laporan</b>: lihat grafik perkembangan kelas, sebaran kebugaran, hasil survei siswa; unduh CSV atau cetak laporan PDF (identitas siswa disamarkan secara bawaan).', '<b>Bank Soal Game</b>: tambah, ubah, atau hapus soal yang muncul di game (minimal 5 soal).', 'Gunakan "Ekspor" untuk cadangan data. Keluar dengan "Kembali ke Mode Siswa".'],
         juri: ['Di layar awal, tekan "Mode Juri / Coba Aplikasi". Seluruh data yang tampil adalah <b>DATA CONTOH</b> dan tidak tersambung ke data siswa asli.', 'Anda langsung masuk sebagai siswa contoh. Jelajahi semua tab: Rapor &amp; Kebugaran, Tugas Terbaru, Alat Latihan, Sumber Belajar, dan Game.', 'Tekan "Mode Guru / Admin" untuk membuka dasbor guru tanpa password: kelola nilai, presensi, tugas, impor daftar, peringkat, dan grafik.', 'Perubahan di Mode Juri bersifat sementara dan hilang saat halaman dimuat ulang. Tekan "Keluar" untuk keluar dari Mode Juri.']
     };
     window.guideTab = k => {
@@ -3164,6 +3191,332 @@ SF_GAME.listenQ(v => { if (window.SF_BANKUI) SF_BANKUI.remote(v ? (Array.isArray
     ib.onclick = async () => { if (!dip) return; dip.prompt(); try { await dip.userChoice; } catch (x) {} dip = null; ib.classList.add('hidden'); };
     window.addEventListener('appinstalled', () => ib.classList.add('hidden'));
     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+})();
+</script>
+<script>
+/* ===================== MODUL: Nilai Materi Massal, Game Basket Shooting, Kartu Guru Bisa Diminimize ===================== */
+(function () {
+    const { $, esc: E, cur } = Util;
+    const KKM_M = 75;
+
+    /* ---------- 1. Nilai Materi Massal per kelas ---------- */
+    const bcBtn = document.querySelector('#view-admin button[onclick="openBroadcastTaskModal()"]');
+    bcBtn.insertAdjacentHTML('afterend', '<button type="button" id="btn-mass-grade" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-2"><i class="fa-solid fa-table-list"></i> Nilai Materi Massal</button>');
+    const norm = t => String(t || '').trim().toLowerCase();
+    window.openMassGrade = function () {
+        const classes = [...new Set(studentsData.map(s => s.class))];
+        if (!classes.length) { alert('Belum ada siswa. Impor daftar siswa terlebih dahulu.'); return; }
+        const m = openModal('m-mass', `<h3 class="font-extrabold text-base text-slate-900">📋 Nilai Materi Massal (Per Kelas)</h3>
+            <p class="text-xs">Buat materi <b>satu kali</b> untuk seluruh kelas, lalu isi nilai tiap murid di tabel. Kolom yang dikosongkan dilewati. Memilih nama materi yang sudah ada akan menampilkan nilainya untuk diperbarui.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+              <div><label class="block font-bold mb-1">Kelas</label><select id="mass-class" class="w-full border rounded-lg p-2 font-semibold">${classes.map(c => `<option value="${E(c)}">${E(c)}</option>`).join('')}</select></div>
+              <div class="sm:col-span-2"><label class="block font-bold mb-1">Nama Materi / Cabang Olahraga</label><input id="mass-topic" list="mass-topics" placeholder="Contoh: Bola Voli (Passing Bawah)" class="w-full border rounded-lg p-2 font-semibold"><datalist id="mass-topics"></datalist></div>
+            </div>
+            <div class="text-xs"><label class="block font-bold mb-1">Kategori</label><select id="mass-cat" class="w-full sm:w-56 border rounded-lg p-2"><option value="Praktik">Praktik</option><option value="Teori / Kuis">Teori / Kuis</option></select></div>
+            <div class="border rounded-xl overflow-hidden max-h-[40vh] overflow-y-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-50 text-slate-500 font-bold sticky top-0"><tr><th class="p-2 w-8">No</th><th class="p-2">Nama Murid</th><th class="p-2 w-28">Nilai (0-100)</th></tr></thead><tbody id="mass-rows" class="divide-y divide-slate-100"></tbody></table></div>
+            <p id="mass-info" class="text-[11px] text-slate-500"></p>
+            <div class="flex flex-wrap justify-between gap-2"><button type="button" id="mass-del" class="px-3 py-2 rounded-xl bg-red-50 text-red-600 border border-red-200 font-bold text-xs">Hapus materi ini dari kelas</button>
+            <div class="flex gap-2"><button type="button" onclick="document.getElementById('m-mass').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-slate-100 font-semibold text-xs">Batal</button><button type="button" id="mass-save" class="px-5 py-2 rounded-xl bg-teal-600 text-white font-bold text-xs">Simpan Nilai</button></div></div>`, true);
+        const fill = () => {
+            const cls = $('mass-class').value, topic = norm($('mass-topic').value);
+            const list = studentsData.filter(s => s.class === cls).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+            $('mass-topics').innerHTML = [...new Set(list.flatMap(s => (s.grades || []).map(g => String(g.topic).trim())))].map(t => `<option value="${E(t)}">`).join('');
+            let found = 0, cat = null;
+            $('mass-rows').innerHTML = list.map((s, i) => {
+                const g = topic ? (s.grades || []).find(x => norm(x.topic) === topic) : null;
+                if (g) { found++; cat = cat || g.category; }
+                return `<tr><td class="p-2 text-slate-400">${i + 1}</td><td class="p-2 font-semibold">${E(s.name)}</td><td class="p-2"><input type="number" min="0" max="100" data-id="${E(s.id)}" value="${g ? E(g.score) : ''}" class="mass-in w-full border rounded p-1.5 font-bold text-blue-600"></td></tr>`;
+            }).join('') || '<tr><td colspan="3" class="p-3 text-center text-slate-400">Tidak ada murid di kelas ini.</td></tr>';
+            if (cat && ['Praktik', 'Teori / Kuis'].includes(cat)) $('mass-cat').value = cat;
+            $('mass-info').textContent = list.length + ' murid di kelas ini' + (topic ? ', ' + found + ' sudah punya nilai materi ini.' : '.');
+        };
+        $('mass-class').onchange = fill; $('mass-topic').oninput = fill; fill();
+        $('mass-save').onclick = () => {
+            const topic = $('mass-topic').value.trim(), cat = $('mass-cat').value;
+            if (!topic) { alert('Isi nama materi terlebih dahulu.'); return; }
+            let n = 0;
+            m.querySelectorAll('.mass-in').forEach(inp => {
+                if (inp.value === '') return;
+                const s = studentsData.find(x => x.id === inp.dataset.id); if (!s) return;
+                const sc = Math.max(0, Math.min(100, Number(inp.value) || 0));
+                if (!Array.isArray(s.grades)) s.grades = [];
+                const idx = s.grades.findIndex(g => norm(g.topic) === norm(topic));
+                const row = { topic, category: cat, score: sc, status: sc >= KKM_M ? 'Tuntas' : 'Remedial' };
+                idx >= 0 ? s.grades[idx] = row : s.grades.push(row);
+                n++;
+            });
+            if (!n) { alert('Belum ada nilai yang diisi.'); return; }
+            saveStorageData(); renderAdminStudentList(); m.classList.add('hidden');
+            alert('Nilai materi "' + topic + '" tersimpan untuk ' + n + ' murid.');
+        };
+        $('mass-del').onclick = () => {
+            const topic = $('mass-topic').value.trim(), cls = $('mass-class').value;
+            if (!topic) { alert('Isi/pilih nama materi yang akan dihapus.'); return; }
+            if (!confirm('Hapus materi "' + topic + '" beserta nilainya dari semua murid di ' + cls + '?')) return;
+            let n = 0;
+            studentsData.forEach(s => { if (s.class !== cls) return; const b = (s.grades || []).length; s.grades = (s.grades || []).filter(g => norm(g.topic) !== norm(topic)); if (s.grades.length !== b) n++; });
+            saveStorageData(); renderAdminStudentList(); m.classList.add('hidden');
+            alert('Materi dihapus dari ' + n + ' murid.');
+        };
+    };
+    $('btn-mass-grade').onclick = openMassGrade;
+
+    /* ---------- 2. Game Basket Shooting ---------- */
+    const LEVELS = 5, TRY = 3, W = 640, H = 300, HX = 560, HY = 120, GY = 262;
+    const DIST = [3, 4.5, 6, 7.5, 9], TOL = [.13, .11, .09, .075, .06], PST = [.35, .45, .55, .65, .75];
+    const pxOf = L => HX - (170 + L * 60);
+    const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    const prep = q => { const ix = shuffle([0, 1, 2, 3]); return { q: q.q, o: ix.map(i => q.o[i]), a: ix.indexOf(q.a) }; };
+    const ini = n => String(n || '').split(' ').filter(Boolean).map(w => w[0].toUpperCase()).join(' ');
+    const md = i => ['🥇', '🥈', '🥉'][i] || (i + 1);
+
+    const tab = $('tab-content-game');
+    const runCard = tab.children[0], runSide = tab.children[1];
+    const sw = document.createElement('div');
+    sw.className = 'lg:col-span-3 flex gap-2 text-xs font-bold';
+    sw.innerHTML = '<button type="button" data-g="run" class="gm-sw flex-1 sm:flex-none px-4 py-2 rounded-xl border">🏃 Lari Rintangan</button><button type="button" data-g="basket" class="gm-sw flex-1 sm:flex-none px-4 py-2 rounded-xl border">🏀 Basket Shooting</button>';
+    tab.insertBefore(sw, tab.firstChild);
+
+    const card = document.createElement('div');
+    card.id = 'bb-card'; card.className = 'hidden lg:col-span-2 bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-3';
+    card.innerHTML = `
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div><h3 class="font-bold text-lg">🏀 Basket Shooting</h3>
+        <p class="text-xs text-slate-500">${LEVELS} level, jarak lemparan makin jauh. Tiap level ada ${TRY} kesempatan. Jawab soal untuk pindah level.</p></div>
+        <div class="flex gap-2 text-xs font-bold"><span class="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg">Level <b id="bb-level">1</b>/${LEVELS}</span><span class="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg">⭐ <b id="bb-score">0</b></span><span id="bb-tries" class="bg-orange-50 px-2.5 py-1 rounded-lg">🏀🏀🏀</span></div>
+      </div>
+      <div class="relative rounded-xl overflow-hidden border bg-amber-50 select-none touch-none">
+        <canvas id="bb-canvas" width="${W}" height="${H}" class="w-full block"></canvas>
+        <div id="bb-overlay" class="absolute inset-0 flex flex-col overflow-y-auto bg-slate-900/65 text-white text-center p-3"></div>
+        <div id="bb-quiz" class="hidden fixed inset-0 z-[9000] bg-slate-900/70 flex items-center justify-center p-3"></div>
+      </div>
+      <button id="bb-shoot" type="button" class="w-full bg-orange-500 active:bg-orange-600 text-white font-bold py-3 rounded-xl sm:hidden">🏀 LEMPAR</button>
+      <p class="hidden sm:block text-[11px] text-slate-400 text-center">Tekan <b>Spasi</b> atau klik area permainan saat penanda berada di <b class="text-green-600">zona hijau</b>. Makin jauh, zona makin sempit dan penanda makin cepat. Skor: masuk +10 × level, sisa kesempatan +5, jawaban benar +50, tamat +100.</p>`;
+    const side = document.createElement('div');
+    side.id = 'bb-side'; side.className = 'hidden bg-white rounded-2xl p-5 shadow-sm border border-slate-200';
+    side.innerHTML = `<h3 class="font-bold text-base mb-1">🏆 Peringkat Basket Kelas</h3><p id="bb-best" class="text-xs text-slate-500 mb-3"></p><div id="bb-board" class="space-y-2 text-xs"></div><p class="text-[10px] text-slate-400 mt-3">Peringkat diperbarui otomatis saat teman sekelas mencetak skor baru.</p>`;
+    runSide.after(card); card.after(side);
+
+    let sub = 'run';
+    function showSub(k) {
+        if (k === sub) return;
+        sub = k;
+        if (k === 'basket') { if (window.SF_RUN) SF_RUN.pause(); } else pauseB();
+        runCard.classList.toggle('hidden', k !== 'run'); runSide.classList.toggle('hidden', k !== 'run');
+        card.classList.toggle('hidden', k !== 'basket'); side.classList.toggle('hidden', k !== 'basket');
+        paintSw(); if (k === 'basket') { renderBBoard(); if (!B) showStartB(); draw(); }
+    }
+    function paintSw() { sw.querySelectorAll('.gm-sw').forEach(b => { const on = b.dataset.g === sub; b.className = 'gm-sw flex-1 sm:flex-none px-4 py-2 rounded-xl border ' + (on ? 'bg-blue-600 text-white border-blue-600 shadow' : 'bg-white text-slate-600'); }); }
+    sw.onclick = e => { const b = e.target.closest('.gm-sw'); if (b) showSub(b.dataset.g); };
+    paintSw();
+
+    // ---------- skor ----------
+    const bList = cls => Object.entries(window.getGameScores ? getGameScores() : {}).filter(([id, r]) => id.endsWith('_b') && r && (!cls || r.c === cls)).map(([id, r]) => ({ id: id.slice(0, -2), ...r })).sort((a, b) => b.s - a.s || a.t - b.t);
+    function renderBBoard() {
+        const m = cur(); if (!m) return;
+        const list = bList(m.class), mine = list.find(r => r.id === m.id);
+        $('bb-best').textContent = mine ? `Skor terbaikmu: ${mine.s} (sampai level ${mine.st})` : 'Kamu belum bermain. Ayo cetak skor pertamamu!';
+        $('bb-board').innerHTML = list.slice(0, 10).map((r, i) => `<div class="flex items-center gap-2 p-2 rounded-lg ${r.id === m.id ? 'bg-amber-50 border border-amber-300 font-bold' : 'bg-slate-50'}"><span class="w-6 text-center">${md(i)}</span><span class="flex-1">${r.id === m.id ? E(m.name) + ' (Kamu)' : E(r.n)}</span><span class="text-[10px] text-slate-400">Level ${r.st}</span><span class="text-amber-600 font-bold">${r.s}</span></div>`).join('') || '<p class="text-slate-400">Belum ada skor di kelas ini.</p>';
+    }
+    function submitB() {
+        const m = cur(); if (!m || isAdminMode || !B) return;
+        const all = window.getGameScores ? getGameScores() : null; if (!all) return;
+        const k = m.id + '_b', prev = all[k]; if (prev && prev.s >= B.score) return;
+        const rec = { n: ini(m.name), c: m.class, s: B.score, st: B.L, t: Date.now() };
+        all[k] = rec;
+        if (!window.JURI) { try { localStorage.setItem('sf_game_scores', JSON.stringify(all)); } catch (e) {} if (window.SF_GAME) SF_GAME.submit(k, rec); }
+        renderBBoard(); renderBAdmin();
+    }
+    setInterval(() => { if (sub === 'basket' && !tab.classList.contains('hidden')) renderBBoard(); }, 4000);
+
+    // ---------- mesin game ----------
+    const cv = $('bb-canvas'), ctx = cv.getContext('2d');
+    let B = null, running = false, raf = 0, last = 0;
+    function hud() {
+        $('bb-level').textContent = B ? B.L : 1; $('bb-score').textContent = B ? B.score : 0;
+        $('bb-tries').textContent = B ? '🏀'.repeat(B.tries) + '⚪'.repeat(TRY - B.tries) : '🏀'.repeat(TRY);
+    }
+    function ovl(title, html, btn, fn) {
+        const o = $('bb-overlay'); o.classList.remove('hidden');
+        o.innerHTML = `<div class="m-auto flex flex-col items-center"><div class="text-2xl">${title.icon}</div><h4 class="font-extrabold text-base sm:text-lg">${title.text}</h4><div class="text-[11px] sm:text-sm text-slate-200 my-1.5 max-w-sm">${html}</div><button type="button" id="bb-ok" class="bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-bold px-5 py-2 rounded-xl text-sm">${btn}</button></div>`;
+        $('bb-ok').onclick = fn;
+    }
+    function showStartB() {
+        const m = cur();
+        ovl({ icon: '🏀', text: 'Basket Shooting' }, `Halo ${E(m ? m.name.split(' ')[0] : 'Atlet')}! Tekan LEMPAR saat penanda ada di zona hijau. Kamu punya ${TRY} kesempatan tiap level dan harus memasukkan minimal 1 bola untuk lanjut.`, 'Mulai Main', newB);
+        draw();
+    }
+    function newB() {
+        B = { owner: currentStudentId, L: 1, score: 0, tries: TRY, p: 0, dir: 1, state: 'aim', qs: (() => { let a = shuffle(SF_BANK.get()); while (a.length < LEVELS) a = a.concat(shuffle(SF_BANK.get())); return a.slice(0, LEVELS).map(prep); })(), msg: '', msgT: 0 };
+        hud(); $('bb-overlay').classList.add('hidden'); $('bb-quiz').classList.add('hidden'); resume();
+    }
+    function resume() { if (running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); }
+    function halt() { running = false; cancelAnimationFrame(raf); }
+    function pauseB() {
+        if (running && B && (B.state === 'aim' || B.state === 'fly')) { halt(); ovl({ icon: '⏸️', text: 'Dijeda' }, 'Permainan dijeda.', 'Lanjut', () => { $('bb-overlay').classList.add('hidden'); resume(); }); }
+        else halt();
+    }
+    document.addEventListener('visibilitychange', () => { if (document.hidden) pauseB(); });
+    App.on('tabChanged', t => { if (t !== 'game') pauseB(); });
+    App.on('studentLoaded', () => { if (B && B.owner !== currentStudentId) { halt(); B = null; $('bb-quiz').classList.add('hidden'); if (sub === 'basket') showStartB(); } renderBBoard(); });
+    function loop(t) {
+        if (!running) return;
+        const dt = Math.min(2, (t - last) / 16.667); last = t;
+        update(dt); draw();
+        if (running) raf = requestAnimationFrame(loop);
+    }
+    function shoot() {
+        if (!B || !running || B.state !== 'aim') return;
+        const L = B.L, p = B.p, err = p - PST[L - 1], made = Math.abs(err) <= TOL[L - 1];
+        B.tries--; hud();
+        B.made = made; B.state = 'fly'; B.phase = 'arc'; B.f = 0;
+        B.x0 = pxOf(L) + 14; B.y0 = GY - 52;
+        B.tx = made ? HX - 13 : Math.max(B.x0 + 30, Math.min(W - 12, HX - 13 + err * 420)); B.ty = HY;
+        B.arc = 70 + (HX - B.x0) * 0.2;
+        B.bx = B.x0; B.by = B.y0;
+    }
+    function inTab() { return !tab.classList.contains('hidden') && !card.classList.contains('hidden'); }
+    document.addEventListener('keydown', e => { if (!running || !inTab()) return; if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); shoot(); } });
+    cv.addEventListener('pointerdown', shoot);
+    $('bb-shoot').addEventListener('pointerdown', e => { e.preventDefault(); shoot(); });
+    function flash(m) { B.msg = m; B.msgT = 60; }
+    function update(dt) {
+        const b = B;
+        if (b.msgT > 0) b.msgT -= dt;
+        if (b.state === 'aim') {
+            b.p += b.dir * (0.9 + 0.15 * b.L) / 60 * dt;
+            if (b.p >= 1) { b.p = 1; b.dir = -1; } else if (b.p <= 0) { b.p = 0; b.dir = 1; }
+        } else if (b.state === 'fly') {
+            if (b.phase === 'arc') {
+                b.f += dt; const t = Math.min(1, b.f / 54);
+                b.bx = b.x0 + (b.tx - b.x0) * t; b.by = b.y0 + (b.ty - b.y0) * t - b.arc * 4 * t * (1 - t);
+                if (t >= 1) { b.phase = 'drop'; b.vy = 2; b.vx = b.made ? 0 : (b.tx - b.x0) / 54 * 0.7; }
+            } else {
+                b.vy += 0.5 * dt; b.by += b.vy * dt; b.bx += b.vx * dt;
+                if (b.made ? b.by >= HY + 48 : b.by >= GY - 10) afterShot();
+            }
+        } else if (b.state === 'wait') {
+            b.wait -= dt;
+            if (b.wait <= 0) { const f = b.after; b.after = null; b.state = 'idle'; if (f) f(); }
+        }
+    }
+    function afterShot() {
+        const b = B;
+        if (b.made) {
+            b.score += 10 * b.L + 5 * b.tries; hud(); submitB(); flash('🏀 MASUK!');
+            b.state = 'wait'; b.wait = 45; b.after = () => { if (b.L >= LEVELS) { b.score += 100; hud(); endB(true, 'Kamu menamatkan semua level!'); } else askQuiz(); };
+        } else if (b.tries <= 0) {
+            flash('Meleset!'); b.state = 'wait'; b.wait = 40; b.after = () => endB(false, `Kesempatan di level ${b.L} habis.`);
+        } else {
+            flash(b.p < PST[b.L - 1] ? 'Terlalu pelan!' : 'Terlalu kuat!');
+            b.state = 'wait'; b.wait = 40; b.after = () => { b.state = 'aim'; b.p = 0; b.dir = 1; };
+        }
+    }
+    function askQuiz() {
+        halt(); const b = B, q = b.qs[b.L - 1], box = $('bb-quiz'); box.classList.remove('hidden');
+        box.innerHTML = `<div class="bg-white rounded-2xl p-4 sm:p-6 max-w-lg w-full max-h-[92vh] overflow-y-auto"><div class="text-center text-xs font-bold text-blue-700 mb-1">🎓 Level ${b.L} selesai! Jawab soal untuk pindah level (+50)</div>
+            <h4 class="font-bold text-sm sm:text-base mb-3">${E(q.q)}</h4>
+            <div class="space-y-2">${q.o.map((o, i) => `<button type="button" data-i="${i}" class="bb-opt w-full text-left bg-slate-50 hover:bg-blue-50 border rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold">${String.fromCharCode(65 + i)}. ${E(o)}</button>`).join('')}</div>
+            <p id="bb-fb" class="mt-3 text-sm font-bold"></p></div>`;
+        box.querySelectorAll('.bb-opt').forEach(btn => btn.onclick = () => {
+            box.querySelectorAll('.bb-opt').forEach(x => { x.disabled = true; });
+            const ok = +btn.dataset.i === q.a;
+            btn.classList.add(ok ? 'bg-green-200' : 'bg-red-200');
+            box.querySelectorAll('.bb-opt')[q.a].classList.add('bg-green-200', 'border-green-500');
+            if (ok) { b.score += 50; $('bb-fb').innerHTML = '<span class="text-green-600">✅ Benar! +50 poin</span>'; }
+            else $('bb-fb').innerHTML = '<span class="text-red-600">❌ Kurang tepat. Tidak ada poin tambahan.</span>';
+            hud(); submitB();
+            setTimeout(() => {
+                box.classList.add('hidden');
+                b.L++; b.tries = TRY; b.p = 0; b.dir = 1; b.state = 'aim'; hud();
+                ovl({ icon: '🚩', text: 'Level ' + b.L }, `Jarak lemparan ${DIST[b.L - 1]} m. Zona hijau makin sempit dan penanda makin cepat!`, 'Lanjut', () => { $('bb-overlay').classList.add('hidden'); resume(); });
+                draw();
+            }, 1600);
+        });
+    }
+    function endB(win, msg) {
+        halt(); submitB();
+        const m = cur(), list = bList(m && m.class), rank = list.findIndex(r => m && r.id === m.id) + 1;
+        ovl({ icon: win ? '🏆' : '💪', text: win ? 'Juara!' : 'Game Selesai' },
+            `${msg}<br>Skor: <b class="text-yellow-300 text-lg">${B.score}</b> · Level ${B.L}/${LEVELS}${rank ? `<br>Peringkatmu di kelas: <b>#${rank}</b> dari ${list.length}` : ''}`, 'Main Lagi', newB);
+        if (win) { try { confetti(); } catch (e) {} }
+    }
+
+    // ---------- gambar ----------
+    function ball(x, y) {
+        const c = ctx; c.fillStyle = '#f97316'; c.beginPath(); c.arc(x, y, 9, 0, 7); c.fill();
+        c.strokeStyle = '#7c2d12'; c.lineWidth = 1.5; c.beginPath(); c.arc(x, y, 9, 0, 7); c.moveTo(x - 9, y); c.lineTo(x + 9, y); c.moveTo(x, y - 9); c.lineTo(x, y + 9); c.stroke();
+    }
+    function draw() {
+        const c = ctx, b = B, L = b ? b.L : 1, px = pxOf(L);
+        c.clearRect(0, 0, W, H); c.lineCap = 'round';
+        const g = c.createLinearGradient(0, 0, 0, GY); g.addColorStop(0, '#fde68a'); g.addColorStop(1, '#fef3c7');
+        c.fillStyle = g; c.fillRect(0, 0, W, GY);
+        c.fillStyle = '#c2813f'; c.fillRect(0, GY, W, H - GY);
+        c.strokeStyle = 'rgba(255,255,255,.75)'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, GY + 1); c.lineTo(W, GY + 1); c.stroke();
+        // garis jarak
+        c.setLineDash([6, 6]); c.strokeStyle = 'rgba(255,255,255,.85)'; c.beginPath(); c.moveTo(px, GY + 18); c.lineTo(HX - 13, GY + 18); c.stroke(); c.setLineDash([]);
+        c.fillStyle = '#fff'; c.font = 'bold 11px sans-serif'; c.textAlign = 'center'; c.fillText('Jarak ' + DIST[L - 1] + ' m', (px + HX - 13) / 2, GY + 34);
+        // tiang, papan, ring, jaring
+        c.fillStyle = '#64748b'; c.fillRect(HX + 30, HY - 30, 5, GY - HY + 30);
+        c.fillStyle = '#f8fafc'; c.strokeStyle = '#334155'; c.lineWidth = 2; c.fillRect(HX + 14, HY - 52, 8, 72); c.strokeRect(HX + 14, HY - 52, 8, 72);
+        c.strokeStyle = '#e2e8f0'; c.lineWidth = 1.5;
+        for (let i = 0; i <= 4; i++) { c.beginPath(); c.moveTo(HX - 26 + i * 6.5, HY); c.lineTo(HX - 20 + i * 4.5, HY + 26); c.stroke(); }
+        c.strokeStyle = '#ea580c'; c.lineWidth = 4; c.beginPath(); c.moveTo(HX - 26, HY); c.lineTo(HX + 14, HY); c.stroke();
+        // pemain
+        c.strokeStyle = '#1d4ed8'; c.lineWidth = 6; c.beginPath(); c.moveTo(px, GY - 54); c.lineTo(px, GY - 30); c.stroke();
+        c.fillStyle = '#f59e0b'; c.beginPath(); c.arc(px, GY - 62, 8, 0, 7); c.fill();
+        c.strokeStyle = '#0f172a'; c.lineWidth = 4; c.beginPath(); c.moveTo(px, GY - 30); c.lineTo(px - 8, GY); c.moveTo(px, GY - 30); c.lineTo(px + 8, GY); c.stroke();
+        c.strokeStyle = '#f59e0b'; c.lineWidth = 3; c.beginPath(); c.moveTo(px, GY - 48); c.lineTo(px + 14, GY - 54); c.stroke();
+        if (b && (b.state === 'fly' || (b.state === 'wait' && b.phase === 'drop'))) ball(b.bx, b.by); else ball(px + 14, GY - 62);
+        // pengukur kekuatan
+        if (b && (b.state === 'aim' || b.state === 'fly')) {
+            const mx = 170, mw = 300, my = 12, mh = 14, pst = PST[L - 1], tol = TOL[L - 1];
+            c.fillStyle = 'rgba(15,23,42,.55)'; c.fillRect(mx, my, mw, mh);
+            c.fillStyle = '#22c55e'; c.fillRect(mx + (pst - tol) * mw, my, tol * 2 * mw, mh);
+            c.fillStyle = '#fff'; c.fillRect(mx + b.p * mw - 2, my - 3, 4, mh + 6);
+            c.font = 'bold 10px sans-serif'; c.textAlign = 'center'; c.fillStyle = '#334155'; c.fillText('Tekan LEMPAR saat penanda di zona hijau', mx + mw / 2, my + mh + 13);
+        }
+        if (b && b.msgT > 0) { c.font = 'bold 24px sans-serif'; c.textAlign = 'center'; c.fillStyle = '#b45309'; c.fillText(b.msg, W / 2, 90); }
+    }
+    hud(); draw();
+
+    /* ---------- 3. Peringkat basket untuk guru ---------- */
+    const ac = document.createElement('div');
+    ac.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden';
+    ac.innerHTML = `<div class="p-4 border-b flex flex-wrap items-center justify-between gap-2"><div><h3 class="font-bold text-slate-900 text-sm">🏀 Peringkat Game Basket</h3><span class="text-xs text-slate-500">Diperbarui otomatis (realtime). Tombol Reset Skor di kartu Peringkat Game juga menghapus skor basket.</span></div>
+        <select id="bba-class" class="border rounded-lg p-1.5 text-xs font-semibold"></select></div>
+        <div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold"><tr><th class="p-3 w-20">Peringkat</th><th class="p-3">Nama</th><th class="p-3">Kelas</th><th class="p-3">Level</th><th class="p-3">Skor</th></tr></thead><tbody id="bba-body" class="divide-y divide-slate-100"></tbody></table></div>`;
+    const gaCard = $('ga-body').closest('.rounded-2xl');
+    gaCard.after(ac);
+    function renderBAdmin() {
+        const sel = $('bba-class'), pv = sel.value;
+        const cls = [...new Set(bList('').map(r => r.c).concat(studentsData.map(x => x.class)))];
+        sel.innerHTML = '<option value="">Semua Kelas</option>' + cls.map(c => `<option value="${E(c)}">${E(c)}</option>`).join('');
+        sel.value = cls.includes(pv) ? pv : '';
+        $('bba-body').innerHTML = bList(sel.value).map((r, i) => { const st = studentsData.find(x => x.id === r.id); return `<tr class="${i < 3 ? 'bg-amber-50/60' : ''}"><td class="p-3 font-extrabold">${md(i)}</td><td class="p-3 font-bold">${E(st ? st.name : r.n)}</td><td class="p-3 text-slate-600">${E(r.c)}</td><td class="p-3">${r.st}</td><td class="p-3 font-bold text-indigo-600">${r.s}</td></tr>`; }).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Belum ada yang bermain.</td></tr>';
+    }
+    $('bba-class').onchange = renderBAdmin;
+    App.on('adminListRendered', renderBAdmin);
+    setInterval(() => { if (!$('view-admin').classList.contains('hidden')) renderBAdmin(); }, 20000);
+    renderBAdmin();
+
+    /* ---------- 4. Kartu mode guru bisa diminimize ---------- */
+    document.head.insertAdjacentHTML('beforeend', '<style>.sf-collapsed > :not(:first-child){display:none !important}.sf-head{cursor:pointer}</style>');
+    [['rank-body', 'rank'], ['ga-body', 'game'], ['bba-body', 'basket'], ['st-tiles', 'stats'], ['bk-list', 'bank'], ['res-admin-list', 'res']].forEach(([id, key]) => {
+        const el = $(id); if (!el) return;
+        const cardEl = el.closest('.rounded-2xl'), head = cardEl.firstElementChild, h3 = head.querySelector('h3');
+        let closed = true; try { const v = localStorage.getItem('sf_col_' + key); if (v !== null) closed = v === '1'; } catch (e) {}
+        const chev = document.createElement('span'); chev.className = 'inline-block w-4 text-slate-400'; h3.prepend(chev);
+        head.classList.add('sf-head'); head.title = 'Klik untuk membuka / menutup';
+        const paint = () => { cardEl.classList.toggle('sf-collapsed', closed); chev.textContent = closed ? '▸' : '▾'; };
+        head.addEventListener('click', e => {
+            if (e.target.closest('select,button,input,label,a')) return;
+            closed = !closed; try { localStorage.setItem('sf_col_' + key, closed ? '1' : '0'); } catch (x) {}
+            paint(); setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+        });
+        paint();
+    });
 })();
 </script>
 </body>
