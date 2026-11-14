@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SportFolio - Portal Digital Kebugaran Jasmani & Asesmen Penjasorkes SMP Negeri 36 Pekanbaru</title>
+    <title>SportFolio - Portal Digital Kebugaran Jasmani & Asesmen PJOK SMP Negeri 36 Pekanbaru</title>
     <!-- Favicon Browser Tab Icon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path fill='%25232563eb' d='M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141-61.2-10.2-122 17.2-152 68-30-50.8-90.8-78.2-152-68C18.5 55.6-32 115.2-32 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z'/></svg>">
     <!-- Tailwind CSS CDN -->
@@ -68,7 +68,7 @@
                 </div>
 
                 <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold uppercase tracking-wider mb-2">
-                    Portal Penjasorkes SMP Negeri 36 Pekanbaru
+                    Portal PJOK SMP Negeri 36 Pekanbaru
                 </span>
                 
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
@@ -299,7 +299,7 @@
                         </div>
                     </div>
 
-                    <!-- Rincian Nilai & Tugas Penjasorkes -->
+                    <!-- Rincian Nilai & Tugas PJOK -->
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
                         <div class="flex items-center justify-between mb-4">
                             <div>
@@ -2343,7 +2343,7 @@ function deleteStudent(id) {
     fm.innerHTML = `<form id="res-form" class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-3 text-xs">
         <h3 id="res-form-title" class="font-bold text-base">Sumber Belajar</h3><input type="hidden" id="res-id">
         <div><label class="block font-bold mb-1">Judul Buku / Materi</label><input id="res-title" required class="w-full border rounded-lg p-2"></div>
-        <div class="grid grid-cols-2 gap-2"><div><label class="block font-bold mb-1">Mata Pelajaran / Kategori</label><input id="res-subject" placeholder="Penjasorkes" class="w-full border rounded-lg p-2"></div>
+        <div class="grid grid-cols-2 gap-2"><div><label class="block font-bold mb-1">Mata Pelajaran / Kategori</label><input id="res-subject" placeholder="PJOK" class="w-full border rounded-lg p-2"></div>
         <div><label class="block font-bold mb-1">Deskripsi singkat</label><input id="res-desc" class="w-full border rounded-lg p-2"></div></div>
         <div><label class="block font-bold mb-1">Link Buku</label><input id="res-url" required placeholder="https://drive.google.com/file/d/.../view  atau  buku/penjas-8.pdf" class="w-full border rounded-lg p-2">
         <p class="text-[10px] text-slate-400 mt-1">Google Drive: atur akses "Siapa saja yang memiliki link". File PDF di GitHub: tulis alamat relatifnya, misalnya buku/penjas-8.pdf</p></div>
@@ -2861,7 +2861,7 @@ SF_GAME.listenQ(v => { if (window.SF_BANKUI) SF_BANKUI.remote(v ? (Array.isArray
 
     // ---------- Tentang, atribusi & privasi ----------
     window.openAbout = () => modal('m-about', `
-        <div><h3 class="font-extrabold text-lg text-slate-900">SportFolio</h3><p class="text-xs text-slate-500">Portal Digital Kebugaran Jasmani &amp; Asesmen Penjasorkes</p></div>
+        <div><h3 class="font-extrabold text-lg text-slate-900">SportFolio</h3><p class="text-xs text-slate-500">Portal Digital Kebugaran Jasmani &amp; Asesmen PJOK</p></div>
         ${H('Tentang aplikasi')}<p>Media pembelajaran digital interaktif berbasis web untuk mata pelajaran PJOK: rapor dan portofolio digital, pemantauan kebugaran jasmani (TKJI) per bulan, tugas dan kuis, sumber belajar, serta game edukasi dengan peringkat kelas yang diperbarui secara realtime. Dibuat untuk Festival Inovasi Guru SMP Kota Pekanbaru 2026, Kategori Inovasi Media Pembelajaran Digital.</p>
         ${H('Pengembang')}<p>Heru Prananda, S.Pd., Gr — guru PJOK, SMP Negeri 36 Pekanbaru. Hak cipta karya ini dimiliki pengembang.</p>
         ${H('Pengungkapan penggunaan AI')}<p>Aplikasi ini dikembangkan dengan bantuan asisten kecerdasan buatan (AI), yaitu Claude buatan Anthropic. Bantuan AI mencakup penulisan dan penyusunan kode program, perancangan tata letak antarmuka, penyusunan draf bank soal game, dan penyusunan teks panduan. Gagasan, kebutuhan pembelajaran, pengujian, dan keputusan akhir ditentukan oleh guru pengembang, dan seluruh hasil bantuan AI ditinjau guru sebelum digunakan. Saat aplikasi dipakai siswa, tidak ada layanan AI yang dipanggil: peringkat, XP, lencana, dan klasifikasi IMT dihitung dengan aturan tetap yang sama bagi semua pengguna.</p>
