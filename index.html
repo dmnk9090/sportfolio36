@@ -209,6 +209,8 @@ html body #screen-welcome .sf-fields input:focus{background:#fff!important;borde
 .sf-alt button{font-size:.78rem;font-weight:700;padding:.65rem .5rem;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);cursor:pointer;transition:background .15s}
 .sf-alt button:hover{background:#F5F1E3}
 .sf-alt small{display:block;font-weight:500;font-size:.65rem;color:var(--mute);margin-top:1px}
+.sf-alt .sf-pwa{width:100%;margin-top:.6rem;background:var(--gold-t);border-color:#E7D9AE;color:var(--gold-d);display:flex;align-items:center;justify-content:center;gap:.5rem}
+.sf-alt .sf-pwa:hover{background:#F0E3BC}
 .sf-links{display:flex;gap:.6rem;justify-content:center;margin-top:.9rem;font-size:.72rem;color:var(--mute)}
 .sf-links button{background:none;border:0;padding:0;text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:3px;font-weight:600;color:var(--ink);cursor:pointer}
 html body #screen-welcome .sf-card>button.w-full{margin-top:.8rem;border-radius:12px!important;font-size:.78rem!important;padding:.6rem!important}
@@ -332,6 +334,7 @@ body.juri #screen-welcome.sf-hero{top:24px}
                             <button type="button" onclick="toggleAdminMode()"><i class="fa-solid fa-user-shield"></i> Mode Guru</button>
                             <button type="button" onclick="startJuri()">Mode Juri<small>Data contoh</small></button>
                         </div>
+                        <button type="button" id="btn-pwa" class="sf-pwa"><i class="fa-solid fa-mobile-screen-button"></i> Pasang di HP</button>
                         <div class="sf-links"><button type="button" onclick="openGuide()">Panduan</button><span>&middot;</span><button type="button" onclick="openAbout()">Tentang, Atribusi &amp; Privasi</button></div>
                     </div>
                 </div>
@@ -3419,12 +3422,17 @@ SF_GAME.listenQ(v => { if (window.SF_BANKUI) SF_BANKUI.remote(v ? (Array.isArray
 
     // ---------- PWA ----------
     let dip = null;
-    const ib = document.createElement('button');
-    ib.className = 'hidden w-full bg-blue-50 hover:bg-blue-100 text-blue-800 font-bold py-2 rounded-xl border border-blue-200 text-xs';
-    ib.textContent = '📲 Pasang aplikasi di HP';
-    document.querySelector('#screen-welcome .grid-cols-2').insertAdjacentElement('afterend', ib);
-    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); dip = e; ib.classList.remove('hidden'); });
-    ib.onclick = async () => { if (!dip) return; dip.prompt(); try { await dip.userChoice; } catch (x) {} dip = null; ib.classList.add('hidden'); };
+    const ib = $('btn-pwa');
+    if ((window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone) ib.classList.add('hidden');
+    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); dip = e; });
+    ib.onclick = async () => {
+        if (dip) { dip.prompt(); try { await dip.userChoice; } catch (x) {} dip = null; return; }
+        openModal('m-install', `<h3 class="font-extrabold text-base text-slate-900">📲 Pasang SportFolio di HP</h3>
+            <p><b>Android (Chrome):</b> ketuk menu ⋮ di pojok kanan atas, lalu pilih "Pasang aplikasi" atau "Tambahkan ke layar utama".</p>
+            <p><b>iPhone (Safari):</b> ketuk tombol Bagikan, lalu pilih "Tambah ke Layar Utama".</p>
+            <p class="text-xs text-slate-500">Buka lewat alamat situs utama (bukan dari dalam aplikasi lain) agar pilihan pasang muncul. Setelah terpasang, SportFolio bisa dibuka dari layar utama seperti aplikasi biasa.</p>
+            <div class="text-right pt-2"><button type="button" onclick="document.getElementById('m-install').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 font-semibold text-xs">Tutup</button></div>`);
+    };
     window.addEventListener('appinstalled', () => ib.classList.add('hidden'));
     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 })();
