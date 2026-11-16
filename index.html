@@ -1744,6 +1744,10 @@ function updatePraktikField() { document.getElementById('edit-score-praktik').va
                 alert('Belum ada soal tertulis yang dibuat guru untuk tugas ini.');
                 return;
             }
+            if (String(task.status).includes('Selesai')) {
+                alert('Kamu sudah mengerjakan tes ini. Tes hanya bisa dikerjakan satu kali.');
+                return;
+            }
 
             document.getElementById('quiz-runner-task-id').value = task.id;
             document.getElementById('quiz-runner-title').innerText = task.title;
@@ -1920,7 +1924,13 @@ function updatePraktikField() { document.getElementById('edit-score-praktik').va
                 card.className = "border border-slate-200 bg-slate-50 p-4 rounded-xl flex flex-col justify-between space-y-3";
                 
                 let actionBtnHtml = '';
-                if (t.category === 'Tes Soal' && t.quizQuestions && t.quizQuestions.length > 0) {
+                if (t.category === 'Tes Soal' && t.quizQuestions && t.quizQuestions.length > 0 && String(t.status).includes('Selesai')) {
+                    actionBtnHtml = `
+                        <button type="button" disabled class="text-xs bg-slate-200 text-slate-500 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 cursor-not-allowed">
+                            <i class="fa-solid fa-lock"></i> Tes Sudah Dikerjakan
+                        </button>
+                    `;
+                } else if (t.category === 'Tes Soal' && t.quizQuestions && t.quizQuestions.length > 0) {
                     actionBtnHtml = `
                         <button data-id="${esc(t.id)}" onclick="openTakeQuizModal(this.dataset.id)" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg shadow flex items-center gap-1">
                             <i class="fa-solid fa-file-pen"></i> Kerjakan Tes Soal
@@ -2355,7 +2365,7 @@ function renderBoard(){
 /* ---------- 7. Kuis ---------- */
 window.submitStudentQuiz=function(e){
   e.preventDefault();
-  const s=cur(),t=s.tasks.find(x=>x.id===$('quiz-runner-task-id').value);if(!t||!(t.quizQuestions||[]).length){closeTakeQuizModal();return}let ok=0;
+  const s=cur(),t=s.tasks.find(x=>x.id===$('quiz-runner-task-id').value);if(!t||!(t.quizQuestions||[]).length||String(t.status).includes('Selesai')){closeTakeQuizModal();return}let ok=0;
   const rows=t.quizQuestions.map((q,i)=>{const c=document.querySelector(`input[name="student-q-ans-${i}"]:checked`),p=c?+c.value:-1,g=p===q.answer;if(g)ok++;
     return `<div class="p-2 rounded-lg border text-xs ${g?'border-green-300 bg-green-50':'border-red-300 bg-red-50'}"><b>${i+1}. ${esc(q.q)}</b><br>Jawabanmu: ${p>=0?esc(q.options[p]):'-'} ${g?'✅':'❌ → Benar: '+esc(q.options[q.answer])}</div>`}).join('');
   const sc=Math.round(ok/t.quizQuestions.length*100);t.status='Selesai (Nilai Tes: '+sc+')';
