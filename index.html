@@ -601,7 +601,7 @@ body.juri #screen-welcome.sf-hero{top:24px}
 
                 <div class="flex flex-wrap items-center justify-center md:justify-end gap-2 w-full md:w-auto">
                     <button onclick="openBroadcastTaskModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-2">
-                        <i class="fa-solid fa-bullhorn"></i> Buat Tugas Massal (Per Kelas)
+                        <i class="fa-solid fa-bullhorn"></i> Input Tugas (Per Kelas)
                     </button>
                 </div>
             </div>
@@ -3504,7 +3504,7 @@ SF_GAME.listenQ(v => { if (window.SF_BANKUI) SF_BANKUI.remote(v ? (Array.isArray
     window.openMassGrade = function () {
         const classes = [...new Set(studentsData.map(s => s.class))];
         if (!classes.length) { alert('Belum ada siswa. Impor daftar siswa terlebih dahulu.'); return; }
-        const m = openModal('m-mass', `<h3 class="font-extrabold text-base text-slate-900">📋 Nilai Materi Massal (Per Kelas)</h3>
+        const m = openModal('m-mass', `<h3 class="font-extrabold text-base text-slate-900">📋 Input Nilai Materi (Per Kelas)</h3>
             <p class="text-xs">Buat materi <b>satu kali</b> untuk seluruh kelas, lalu isi nilai tiap murid di tabel. Kolom yang dikosongkan dilewati. Memilih nama materi yang sudah ada akan menampilkan nilainya untuk diperbarui.</p>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
               <div><label class="block font-bold mb-1">Kelas</label><select id="mass-class" class="w-full border rounded-lg p-2 font-semibold">${classes.map(c => `<option value="${E(c)}">${E(c)}</option>`).join('')}</select></div>
@@ -3566,7 +3566,7 @@ SF_GAME.listenQ(v => { if (window.SF_BANKUI) SF_BANKUI.remote(v ? (Array.isArray
     window.openMassAttend = function () {
         const classes = [...new Set(studentsData.map(s => s.class))];
         if (!classes.length) { alert('Belum ada siswa. Impor daftar siswa terlebih dahulu.'); return; }
-        const m = openModal('m-attend', `<h3 class="font-extrabold text-base text-slate-900">🗓️ Presensi Massal (Per Kelas)</h3>
+        const m = openModal('m-attend', `<h3 class="font-extrabold text-base text-slate-900">🗓️ Input Presensi (Per Kelas)</h3>
             <p class="text-xs">Pilih kelas, tanggal, dan materi <b>satu kali</b>. Semua murid otomatis <b>Hadir</b>; ubah hanya yang Izin, Sakit, atau Alpa. Memilih tanggal dan materi yang sudah ada akan menampilkan presensinya untuk diperbarui.</p>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
               <div><label class="block font-bold mb-1">Kelas</label><select id="att-class" class="w-full border rounded-lg p-2 font-semibold">${classes.map(c => `<option value="${E(c)}">${E(c)}</option>`).join('')}</select></div>
