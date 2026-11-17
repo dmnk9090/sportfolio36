@@ -3499,7 +3499,7 @@ SF_GAME.listenQ(v => { if (window.SF_BANKUI) SF_BANKUI.remote(v ? (Array.isArray
 
     /* ---------- 1. Nilai Materi Massal per kelas ---------- */
     const bcBtn = document.querySelector('#view-admin button[onclick="openBroadcastTaskModal()"]');
-    bcBtn.insertAdjacentHTML('afterend', '<button type="button" id="btn-mass-grade" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-2"><i class="fa-solid fa-table-list"></i> Nilai Materi Massal</button>');
+    bcBtn.insertAdjacentHTML('afterend', '<button type="button" id="btn-mass-grade" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-2"><i class="fa-solid fa-table-list"></i> Input Materi</button>');
     const norm = t => String(t || '').trim().toLowerCase();
     window.openMassGrade = function () {
         const classes = [...new Set(studentsData.map(s => s.class))];
@@ -3560,7 +3560,7 @@ SF_GAME.listenQ(v => { if (window.SF_BANKUI) SF_BANKUI.remote(v ? (Array.isArray
     $('btn-mass-grade').onclick = openMassGrade;
 
     /* ---------- 1b. Presensi Massal per kelas ---------- */
-    document.getElementById('btn-mass-grade').insertAdjacentHTML('afterend', '<button type="button" id="btn-mass-attend" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-2"><i class="fa-solid fa-calendar-check"></i> Presensi Massal</button>');
+    document.getElementById('btn-mass-grade').insertAdjacentHTML('afterend', '<button type="button" id="btn-mass-attend" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-2"><i class="fa-solid fa-calendar-check"></i> Input Presensi</button>');
     const STAT = ['Hadir', 'Izin', 'Sakit', 'Alpa'];
     const todayStr = () => new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
     window.openMassAttend = function () {
