@@ -3559,6 +3559,77 @@ SF_GAME.listenQ(v => { if (window.SF_BANKUI) SF_BANKUI.remote(v ? (Array.isArray
     };
     $('btn-mass-grade').onclick = openMassGrade;
 
+    /* ---------- 1b. Presensi Massal per kelas ---------- */
+    document.getElementById('btn-mass-grade').insertAdjacentHTML('afterend', '<button type="button" id="btn-mass-attend" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-2"><i class="fa-solid fa-calendar-check"></i> Presensi Massal</button>');
+    const STAT = ['Hadir', 'Izin', 'Sakit', 'Alpa'];
+    const todayStr = () => new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    window.openMassAttend = function () {
+        const classes = [...new Set(studentsData.map(s => s.class))];
+        if (!classes.length) { alert('Belum ada siswa. Impor daftar siswa terlebih dahulu.'); return; }
+        const m = openModal('m-attend', `<h3 class="font-extrabold text-base text-slate-900">🗓️ Presensi Massal (Per Kelas)</h3>
+            <p class="text-xs">Pilih kelas, tanggal, dan materi <b>satu kali</b>. Semua murid otomatis <b>Hadir</b>; ubah hanya yang Izin, Sakit, atau Alpa. Memilih tanggal dan materi yang sudah ada akan menampilkan presensinya untuk diperbarui.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+              <div><label class="block font-bold mb-1">Kelas</label><select id="att-class" class="w-full border rounded-lg p-2 font-semibold">${classes.map(c => `<option value="${E(c)}">${E(c)}</option>`).join('')}</select></div>
+              <div><label class="block font-bold mb-1">Tanggal</label><input id="att-date" list="att-dates" value="${E(todayStr())}" class="w-full border rounded-lg p-2 font-semibold"><datalist id="att-dates"></datalist></div>
+              <div><label class="block font-bold mb-1">Materi Pertemuan</label><input id="att-topic" value="Praktik Lapangan" class="w-full border rounded-lg p-2 font-semibold"></div>
+            </div>
+            <div class="flex flex-wrap gap-2 text-[11px] font-bold">
+              <button type="button" id="att-allhadir" class="px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200">Semua Hadir</button>
+            </div>
+            <div class="border rounded-xl overflow-hidden max-h-[40vh] overflow-y-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-50 text-slate-500 font-bold sticky top-0"><tr><th class="p-2 w-8">No</th><th class="p-2">Nama Murid</th><th class="p-2 w-28">Status</th><th class="p-2">Keterangan</th></tr></thead><tbody id="att-rows" class="divide-y divide-slate-100"></tbody></table></div>
+            <p id="att-info" class="text-[11px] text-slate-500"></p>
+            <div class="flex flex-wrap justify-between gap-2"><button type="button" id="att-del" class="px-3 py-2 rounded-xl bg-red-50 text-red-600 border border-red-200 font-bold text-xs">Hapus pertemuan ini dari kelas</button>
+            <div class="flex gap-2"><button type="button" onclick="document.getElementById('m-attend').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-slate-100 font-semibold text-xs">Batal</button><button type="button" id="att-save" class="px-5 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs">Simpan Presensi</button></div></div>`, true);
+        const sameMeet = (a, d, t) => norm(a.date) === norm(d) && norm(a.topic) === norm(t);
+        const fill = () => {
+            const cls = $('att-class').value, d = $('att-date').value, t = $('att-topic').value;
+            const list = studentsData.filter(s => s.class === cls).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+            $('att-dates').innerHTML = [...new Set(list.flatMap(s => (s.attendanceLog || []).map(a => String(a.date).trim())))].map(x => `<option value="${E(x)}">`).join('');
+            let found = 0;
+            $('att-rows').innerHTML = list.map((s, i) => {
+                const a = (s.attendanceLog || []).find(x => sameMeet(x, d, t));
+                if (a) found++;
+                const st = a ? a.status : 'Hadir';
+                return `<tr><td class="p-2 text-slate-400">${i + 1}</td><td class="p-2 font-semibold">${E(s.name)}</td><td class="p-2"><select data-id="${E(s.id)}" class="att-st w-full border rounded p-1.5 font-bold">${STAT.map(o => `<option value="${o}"${o === st ? ' selected' : ''}>${o}</option>`).join('')}</select></td><td class="p-2"><input type="text" data-nid="${E(s.id)}" value="${a && a.note && a.note !== '-' ? E(a.note) : ''}" placeholder="-" class="att-note w-full border rounded p-1.5"></td></tr>`;
+            }).join('') || '<tr><td colspan="4" class="p-3 text-center text-slate-400">Tidak ada murid di kelas ini.</td></tr>';
+            $('att-info').textContent = list.length + ' murid di kelas ini' + (found ? ', ' + found + ' sudah punya presensi pertemuan ini (akan diperbarui).' : '. Pertemuan baru.');
+        };
+        $('att-class').onchange = fill; $('att-date').oninput = fill; $('att-topic').oninput = fill; fill();
+        $('att-allhadir').onclick = () => m.querySelectorAll('.att-st').forEach(x => x.value = 'Hadir');
+        const recount = s => {
+            s.attendance = (s.attendanceLog || []).filter(a => a.status === 'Hadir').length;
+            s.totalClasses = (s.attendanceLog || []).length || 1;
+        };
+        $('att-save').onclick = () => {
+            const d = $('att-date').value.trim(), t = $('att-topic').value.trim();
+            if (!d || !t) { alert('Isi tanggal dan materi pertemuan terlebih dahulu.'); return; }
+            let n = 0;
+            m.querySelectorAll('.att-st').forEach(sel => {
+                const s = studentsData.find(x => x.id === sel.dataset.id); if (!s) return;
+                const noteEl = [...m.querySelectorAll('.att-note')].find(x => x.dataset.nid === sel.dataset.id);
+                const note = (noteEl && noteEl.value.trim()) || '-';
+                if (!Array.isArray(s.attendanceLog)) s.attendanceLog = [];
+                const idx = s.attendanceLog.findIndex(a => sameMeet(a, d, t));
+                const row = { date: d, topic: t, status: sel.value, note };
+                idx >= 0 ? s.attendanceLog[idx] = row : s.attendanceLog.push(row);
+                recount(s); n++;
+            });
+            if (!n) { alert('Tidak ada murid untuk disimpan.'); return; }
+            saveStorageData(); renderAdminStudentList(); loadStudentData(currentStudentId); m.classList.add('hidden');
+            alert('Presensi "' + t + '" (' + d + ') tersimpan untuk ' + n + ' murid.');
+        };
+        $('att-del').onclick = () => {
+            const d = $('att-date').value.trim(), t = $('att-topic').value.trim(), cls = $('att-class').value;
+            if (!d || !t) { alert('Isi tanggal dan materi pertemuan yang akan dihapus.'); return; }
+            if (!confirm('Hapus pertemuan "' + t + '" (' + d + ') dari semua murid di ' + cls + '?')) return;
+            let n = 0;
+            studentsData.forEach(s => { if (s.class !== cls) return; const b = (s.attendanceLog || []).length; s.attendanceLog = (s.attendanceLog || []).filter(a => !sameMeet(a, d, t)); if (s.attendanceLog.length !== b) { n++; recount(s); } });
+            saveStorageData(); renderAdminStudentList(); loadStudentData(currentStudentId); m.classList.add('hidden');
+            alert('Pertemuan dihapus dari ' + n + ' murid.');
+        };
+    };
+    $('btn-mass-attend').onclick = openMassAttend;
+
     /* ---------- 2. Game Basket Shooting ---------- */
     const LEVELS = 5, TRY = 3, W = 640, H = 300, HX = 560, HY = 120, GY = 262;
     const DIST = [3, 4.5, 6, 7.5, 9], TOL = [.13, .11, .09, .075, .06], PST = [.35, .45, .55, .65, .75];
