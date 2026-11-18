@@ -1,7 +1,7 @@
 {
   "name": "SportFolio SMPN 36 Pekanbaru",
   "short_name": "SportFolio",
-  "description": "Portal digital kebugaran jasmani dan asesmen Penjasorkes",
+  "description": "Portal digital PJOK SMP Negeri 36 Pekanbaru",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
